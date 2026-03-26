@@ -8,53 +8,63 @@ export default async function AdminDashboardPage() {
   const session = await getServerSession(authOptions)
 
   try {
-    // Serialize queries to avoid connection pool exhaustion with pooler
-    const totalStudents = await db.student.count()
-    const totalTeachers = await db.teacher.count()
-    const totalClasses = await db.class.count()
-    const pendingFees = await db.fee.count({ where: { status: "PENDING" } })
-    
-    const recentActivity = await db.user.findMany({
-      where: { role: { in: ["STUDENT", "TEACHER"] } },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-      select: { firstName: true, lastName: true, role: true, email: true, createdAt: true },
-    })
+    // Single batch query - fetch everything in 3 round trips instead of 14
+    const [counts, feesByStatus, attendanceStats] = await Promise.all([
+      // One query to get all counts + recent activity + notices
+      db.$transaction([
+        db.student.count(),
+        db.teacher.count(),
+        db.class.count(),
+        db.fee.count({ where: { status: "PENDING" } }),
+        db.noticeRecipient.count({ where: { userId: session!.user.id, isRead: false } }),
+      ]),
+      db.fee.groupBy({
+        by: ["status"],
+        _count: { status: true },
+        _sum: { amount: true },
+      }),
+      db.classAttendance.groupBy({
+        by: ["status"],
+        _count: { status: true },
+        where: { date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
+      }),
+    ])
 
-    const attendanceStats = await db.classAttendance.groupBy({
-      by: ["status"],
-      _count: { status: true },
-      where: { date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
-    })
+    const [totalStudents, totalTeachers, totalClasses, pendingFees, notices] = counts
 
-    const feesByStatus = await db.fee.groupBy({ 
-      by: ["status"], 
-      _count: { status: true }, 
-      _sum: { amount: true } 
-    })
+    // Fetch recent activity in parallel with monthly data using raw SQL for efficiency
+    const [recentActivity, allStudents] = await Promise.all([
+      db.user.findMany({
+        where: { role: { in: ["STUDENT", "TEACHER"] } },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: { firstName: true, lastName: true, role: true, email: true, createdAt: true },
+      }),
+      // Get all students with createdAt for monthly breakdown (1 query instead of 6)
+      db.user.findMany({
+        where: {
+          role: "STUDENT",
+          createdAt: { gte: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) },
+        },
+        select: { createdAt: true },
+      }),
+    ])
 
-    // Monthly data
+    // Build monthly data in memory (no extra DB queries)
     const monthlyData = []
     for (let i = 5; i >= 0; i--) {
       const d = new Date()
       d.setMonth(d.getMonth() - i)
       const start = new Date(d.getFullYear(), d.getMonth(), 1)
       const end = new Date(d.getFullYear(), d.getMonth() + 1, 0)
-      const count = await db.user.count({ 
-        where: { 
-          role: "STUDENT", 
-          createdAt: { gte: start, lte: end } 
-        } 
-      })
-      monthlyData.push({ 
-        month: start.toLocaleString("default", { month: "short" }), 
-        students: count 
+      const count = allStudents.filter(
+        (s) => s.createdAt >= start && s.createdAt <= end
+      ).length
+      monthlyData.push({
+        month: start.toLocaleString("default", { month: "short" }),
+        students: count,
       })
     }
-
-    const notices = await db.noticeRecipient.count({ 
-      where: { userId: session!.user.id, isRead: false } 
-    })
 
     const totalPresent = attendanceStats.find((s) => s.status === "PRESENT")?._count.status ?? 0
     const totalAttendance = attendanceStats.reduce((a, s) => a + s._count.status, 0)

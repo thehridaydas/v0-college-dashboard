@@ -11,14 +11,18 @@ export default async function AdminStudentsPage() {
     db.student.findMany({
       include: {
         user: { select: { firstName: true, lastName: true, email: true, createdAt: true } },
-        enrollments: { include: { class: { include: { course: true } } } },
-        fees: { where: { status: "PENDING" } },
+        // Only fetch first enrollment and limit fee count instead of full records
+        enrollments: {
+          include: { class: { include: { course: { select: { name: true } } } } },
+          take: 1,
+        },
+        _count: { select: { fees: { where: { status: "PENDING" } } } },
       },
       orderBy: { user: { createdAt: "desc" } },
     }),
     db.class.findMany({
-      include: { course: true },
-      orderBy: [{ course: { name: "asc" } }, { year: "asc" }],
+      include: { course: { select: { name: true } } },
+      orderBy: [{ year: "asc" }],
     }),
   ])
 
@@ -40,7 +44,7 @@ export default async function AdminStudentsPage() {
             ? `${s.enrollments[0].class.course.name} - Year ${s.enrollments[0].class.year} ${s.enrollments[0].class.section}`
             : null,
           classId: s.enrollments[0]?.classId ?? null,
-          pendingFees: s.fees.length,
+          pendingFees: s._count.fees,
         }))}
         classes={classes.map((c) => ({
           id: c.id,

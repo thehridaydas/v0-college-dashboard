@@ -11,27 +11,38 @@ export default async function TeacherClassesPage() {
   const session = await getServerSession(authOptions)
   if (!session || session.user.role !== "TEACHER") redirect("/login")
 
-  const teacher = await db.teacher.findUnique({ where: { userId: session.user.id } })
-  if (!teacher) redirect("/login")
-
-  const assignments = await db.teacherAssignment.findMany({
-    where: { teacherId: teacher.id },
+  // Single query - get teacher + assignments in one round trip
+  const teacher = await db.teacher.findUnique({
+    where: { userId: session.user.id },
     include: {
-      class: {
+      assignments: {
         include: {
-          course: true,
-          enrollments: {
+          class: {
             include: {
-              student: { include: { user: { select: { firstName: true, lastName: true, email: true } } } },
+              course: { select: { name: true, code: true } },
+              enrollments: {
+                include: {
+                  student: {
+                    select: {
+                      id: true,
+                      rollNumber: true,
+                      user: { select: { firstName: true, lastName: true, email: true } },
+                    },
+                  },
+                },
+              },
+              subjects: { select: { name: true } },
             },
           },
-          subjects: true,
+          subject: { select: { name: true } },
         },
+        orderBy: { createdAt: "asc" },
       },
-      subject: true,
     },
-    orderBy: { createdAt: "asc" },
   })
+  if (!teacher) redirect("/login")
+
+  const assignments = teacher.assignments
 
   const classMap = new Map<string, {
     classId: string
