@@ -48,7 +48,7 @@ export function DashboardShell({ children, pageTitle, notifications = [] }: Dash
         />
 
         <main className="flex-1 overflow-y-auto">
-          <div className="p-4 md:p-6 max-w-screen-2xl mx-auto">
+          <div className="p-3 md:p-4">
             {children}
           </div>
         </main>
