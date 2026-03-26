@@ -3,13 +3,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Plus, Search, BookOpen, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { Plus, Search, BookOpen, MoreHorizontal, Pencil, Trash2, Users, GraduationCap, BookMarked, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -144,98 +141,101 @@ export function AdminClassesClient({ classes: initialClasses, courses, teachers 
         <Card><CardContent className="pt-4 pb-3"><p className="text-2xl font-bold">{new Set(classes.map((c) => c.courseId)).size}</p><p className="text-xs text-muted-foreground mt-1">Courses</p></CardContent></Card>
       </div>
 
-      {/* Table card fills remaining height */}
-      <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
-        <div className="px-4 py-3 border-b border-border shrink-0">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by course, year, section..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9"
-            />
-          </div>
-        </div>
+      {/* Search */}
+      <div className="relative shrink-0">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by course, year, section..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9 h-9"
+        />
+      </div>
 
-        <div className="flex-1 overflow-auto min-h-0">
-          <Table>
-            <TableHeader className="sticky top-0 bg-background z-10">
-              <TableRow>
-                <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground pl-4">Class</TableHead>
-                <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Course</TableHead>
-                <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Class Teacher</TableHead>
-                <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Students</TableHead>
-                <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Subjects</TableHead>
-                <TableHead className="w-10 pr-4" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-20 text-muted-foreground">
-                    <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-20" />
-                    <p className="text-sm font-medium">
-                      {search ? `No classes matching "${search}"` : "No classes yet"}
-                    </p>
-                    {!search && <p className="text-xs mt-1 opacity-70">Create a class to get started</p>}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filtered.map((cls) => (
-                  <TableRow key={cls.id} className="hover:bg-muted/30 transition-colors cursor-pointer">
-                    <TableCell className="pl-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0">
-                          <BookOpen className="w-4 h-4 text-indigo-500" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Year {cls.year} - {cls.section}</p>
-                          <p className="text-xs text-muted-foreground">{cls.courseCode}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="text-xs font-normal">{cls.courseName}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">{cls.classTeacher ?? "—"}</span>
-                    </TableCell>
-                    <TableCell><span className="text-sm font-medium">{cls.studentCount}</span></TableCell>
-                    <TableCell><span className="text-sm font-medium">{cls.subjectCount}</span></TableCell>
-                    <TableCell className="pr-4">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEdit(cls)} className="gap-2 cursor-pointer">
-                            <Pencil className="w-3.5 h-3.5" />Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => setDeleteId(cls.id)} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
-                            <Trash2 className="w-3.5 h-3.5" />Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+      {/* Card grid */}
+      {filtered.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground py-20">
+          <BookOpen className="w-12 h-12 mb-3 opacity-20" />
+          <p className="text-sm font-medium">{search ? `No classes matching "${search}"` : "No classes yet"}</p>
+          {!search && <p className="text-xs mt-1 opacity-70">Create a class to get started</p>}
         </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 flex-1 content-start overflow-y-auto">
+          {filtered.map((cls) => (
+            <Card
+              key={cls.id}
+              className="group relative flex flex-col hover:shadow-md transition-shadow cursor-pointer border border-border"
+              onClick={() => router.push(`/dashboard/admin/classes/${cls.id}`)}
+            >
+              {/* Card top accent */}
+              <div className="h-1 w-full rounded-t-lg bg-[#2E8B57]" />
 
-        {filtered.length > 0 && (
-          <div className="px-4 py-2 border-t border-border shrink-0">
-            <p className="text-xs text-muted-foreground">
-              Showing {filtered.length} of {classes.length} class{classes.length !== 1 ? "es" : ""}
-            </p>
-          </div>
-        )}
-      </Card>
+              <CardContent className="flex flex-col flex-1 p-4 gap-3">
+                {/* Header row */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-lg bg-[#2E8B57]/10 flex items-center justify-center shrink-0">
+                      <BookOpen className="w-4 h-4 text-[#2E8B57]" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold leading-tight">Year {cls.year} &mdash; {cls.section}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{cls.courseCode}</p>
+                    </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEdit(cls) }} className="gap-2 cursor-pointer">
+                        <Pencil className="w-3.5 h-3.5" />Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setDeleteId(cls.id) }} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
+                        <Trash2 className="w-3.5 h-3.5" />Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Course badge */}
+                <Badge variant="secondary" className="text-xs font-normal w-fit">{cls.courseName}</Badge>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-2 mt-auto">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Users className="w-3.5 h-3.5 shrink-0" />
+                    <span className="text-xs">{cls.studentCount} students</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <BookMarked className="w-3.5 h-3.5 shrink-0" />
+                    <span className="text-xs">{cls.subjectCount} subjects</span>
+                  </div>
+                </div>
+
+                {/* Class teacher */}
+                <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <GraduationCap className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-xs text-muted-foreground truncate">
+                      {cls.classTeacher ?? "No class teacher"}
+                    </span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {filtered.length > 0 && (
+        <p className="text-xs text-muted-foreground shrink-0">
+          Showing {filtered.length} of {classes.length} class{classes.length !== 1 ? "es" : ""}
+        </p>
+      )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
