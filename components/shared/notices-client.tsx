@@ -126,8 +126,8 @@ export function NoticesClient({ notices: initial, canCreate, classes = [] }: Pro
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="flex flex-col gap-4 h-full">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
         <div>
           <h1 className="text-xl font-bold">Notice Board</h1>
           <p className="text-sm text-muted-foreground mt-1">{notices.length} notices published</p>
@@ -144,74 +144,75 @@ export function NoticesClient({ notices: initial, canCreate, classes = [] }: Pro
       </div>
 
       {notices.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-20">
+        <Card className="flex-1 flex items-center justify-center min-h-96">
+          <div className="flex flex-col items-center justify-center py-20 text-center">
             <Bell className="w-10 h-10 text-muted-foreground/30 mb-3" />
             <p className="text-sm font-medium text-muted-foreground">No notices yet</p>
             <p className="text-xs text-muted-foreground/60 mt-1">
               Published notices will appear here
             </p>
-          </CardContent>
+          </div>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {notices.map((notice) => (
-            <Card key={notice.id} className="group hover:shadow-sm transition-all">
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-[#2E8B57]/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <Bell className="w-4 h-4 text-[#2E8B57]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-sm font-semibold">{notice.title}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                          {TARGET_LABELS[notice.targetType] ?? notice.targetType}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          by {notice.createdByName}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(notice.createdAt), { addSuffix: true })}
-                        </span>
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="space-y-3 pb-4">
+            {notices.map((notice) => (
+              <Card key={notice.id} className="group hover:shadow-sm transition-all">
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-[#2E8B57]/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <Bell className="w-4 h-4 text-[#2E8B57]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-sm font-semibold">{notice.title}</CardTitle>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            {TARGET_LABELS[notice.targetType] ?? notice.targetType}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            by {notice.createdByName}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(notice.createdAt), { addSuffix: true })}
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    {canCreate && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100"
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => setDeleteId(notice.id)}
+                            className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
-                  {canCreate && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100"
-                        >
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => setDeleteId(notice.id)}
-                          className="gap-2 cursor-pointer text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap">
-                  {notice.content}
-                </CardDescription>
-              </CardContent>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap">
+                    {notice.content}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
-
       {/* Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
