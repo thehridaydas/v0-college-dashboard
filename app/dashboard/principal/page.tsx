@@ -11,33 +11,34 @@ export default async function PrincipalDashboardPage() {
   const session = await getServerSession(authOptions)
   if (!session || session.user.role !== "PRINCIPAL") redirect("/login")
 
-  const [
-    totalStudents,
-    totalTeachers,
-    totalCourses,
-    totalClasses,
-    feeStats,
-    attendanceStats,
-    recentNotices,
-    topClasses,
-  ] = await Promise.all([
-    db.student.count(),
-    db.teacher.count(),
-    db.course.count(),
-    db.class.count(),
-    db.fee.groupBy({ by: ["status"], _count: { status: true }, _sum: { amount: true } }),
-    db.classAttendance.groupBy({ by: ["status"], _count: { status: true } }),
-    db.notice.findMany({
-      include: { createdBy: { select: { firstName: true, lastName: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
-    db.class.findMany({
-      include: { course: true, enrollments: true, subjects: true },
-      orderBy: { createdAt: "asc" },
-      take: 6,
-    }),
-  ])
+  // Serialize queries to avoid connection pool exhaustion
+  const totalStudents = await db.student.count()
+  const totalTeachers = await db.teacher.count()
+  const totalCourses = await db.course.count()
+  const totalClasses = await db.class.count()
+
+  const feeStats = await db.fee.groupBy({
+    by: ["status"],
+    _count: { status: true },
+    _sum: { amount: true },
+  })
+
+  const attendanceStats = await db.classAttendance.groupBy({
+    by: ["status"],
+    _count: { status: true },
+  })
+
+  const recentNotices = await db.notice.findMany({
+    include: { createdBy: { select: { firstName: true, lastName: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  })
+
+  const topClasses = await db.class.findMany({
+    include: { course: true, enrollments: true, subjects: true },
+    orderBy: { createdAt: "asc" },
+    take: 6,
+  })
 
   const totalAttendance = attendanceStats.reduce((a, b) => a + b._count.status, 0)
   const presentCount = attendanceStats.find((a) => a.status === "PRESENT")?._count.status ?? 0

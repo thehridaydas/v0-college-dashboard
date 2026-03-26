@@ -28,37 +28,39 @@ export default async function StudentDashboardPage() {
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  const [attendanceStats, recentMarks, feesSummary, recentNotices] = await Promise.all([
-    db.classAttendance.groupBy({
-      by: ["status"],
-      where: { studentId: student.id, date: { gte: thirtyDaysAgo } },
-      _count: { status: true },
-    }),
-    db.mark.findMany({
-      where: { studentId: student.id },
-      include: { subject: true },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
-    db.fee.groupBy({
-      by: ["status"],
-      where: { studentId: student.id },
-      _count: { status: true },
-      _sum: { amount: true },
-    }),
-    db.notice.findMany({
-      where: {
-        OR: [
-          { targetType: "ALL" },
-          { targetType: "ROLE", targetId: "STUDENT" },
-          ...(classId ? [{ targetType: "CLASS" as const, targetId: classId }] : []),
-        ],
-      },
-      include: { createdBy: { select: { firstName: true, lastName: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 4,
-    }),
-  ])
+  // Serialize queries to avoid connection pool exhaustion
+  const attendanceStats = await db.classAttendance.groupBy({
+    by: ["status"],
+    where: { studentId: student.id, date: { gte: thirtyDaysAgo } },
+    _count: { status: true },
+  })
+
+  const recentMarks = await db.mark.findMany({
+    where: { studentId: student.id },
+    include: { subject: true },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  })
+
+  const feesSummary = await db.fee.groupBy({
+    by: ["status"],
+    where: { studentId: student.id },
+    _count: { status: true },
+    _sum: { amount: true },
+  })
+
+  const recentNotices = await db.notice.findMany({
+    where: {
+      OR: [
+        { targetType: "ALL" },
+        { targetType: "ROLE", targetId: "STUDENT" },
+        ...(classId ? [{ targetType: "CLASS" as const, targetId: classId }] : []),
+      ],
+    },
+    include: { createdBy: { select: { firstName: true, lastName: true } } },
+    orderBy: { createdAt: "desc" },
+    take: 4,
+  })
 
   const totalAttendance = attendanceStats.reduce((a, b) => a + b._count.status, 0)
   const presentCount = attendanceStats.find((a) => a.status === "PRESENT")?._count.status ?? 0

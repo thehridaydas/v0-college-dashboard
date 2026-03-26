@@ -29,44 +29,39 @@ export default async function TeacherDashboardPage() {
 
   const myClassIds = teacher.assignments.map((a) => a.classId)
 
-  const [pendingFees, recentMarks, attendanceSummary, notices] = await Promise.all([
-    // Pending fees for my students to verify
-    db.fee.count({
-      where: {
-        status: "SUBMITTED",
-        student: { enrollments: { some: { classId: { in: myClassIds } } } },
-      },
-    }),
+  // Serialize queries to avoid connection pool exhaustion
+  const pendingFees = await db.fee.count({
+    where: {
+      status: "SUBMITTED",
+      student: { enrollments: { some: { classId: { in: myClassIds } } } },
+    },
+  })
 
-    // Recent marks entered by this teacher
-    db.mark.findMany({
-      where: { teacherId: teacher.id },
-      include: {
-        student: { include: { user: { select: { firstName: true, lastName: true } } } },
-        subject: true,
-      },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
+  const recentMarks = await db.mark.findMany({
+    where: { teacherId: teacher.id },
+    include: {
+      student: { include: { user: { select: { firstName: true, lastName: true } } } },
+      subject: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  })
 
-    // Attendance summary for my classes (last 7 days)
-    db.classAttendance.groupBy({
-      by: ["status"],
-      _count: { status: true },
-      where: {
-        classId: { in: myClassIds },
-        date: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-      },
-    }),
+  const attendanceSummary = await db.classAttendance.groupBy({
+    by: ["status"],
+    _count: { status: true },
+    where: {
+      classId: { in: myClassIds },
+      date: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+    },
+  })
 
-    // Recent notices
-    db.notice.findMany({
-      where: { OR: [{ targetType: "ALL" }, { targetType: "ROLE", targetId: "TEACHER" }] },
-      orderBy: { createdAt: "desc" },
-      take: 3,
-      select: { id: true, title: true, createdAt: true },
-    }),
-  ])
+  const notices = await db.notice.findMany({
+    where: { OR: [{ targetType: "ALL" }, { targetType: "ROLE", targetId: "TEACHER" }] },
+    orderBy: { createdAt: "desc" },
+    take: 3,
+    select: { id: true, title: true, createdAt: true },
+  })
 
   const totalStudents = new Set(
     teacher.assignments.flatMap((a) => Array(a.class._count.enrollments).fill(a.classId))
