@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
+import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { NoticesClient } from "@/components/shared/notices-client"
 
 export const metadata = { title: "Notices | EduManage" }
@@ -24,23 +25,25 @@ export default async function AdminNoticesPage() {
   ])
 
   return (
-    <NoticesClient
-      notices={notices.map((n) => ({
-        id: n.id,
-        title: n.title,
-        content: n.content,
-        targetType: n.targetType,
-        targetId: n.targetId,
-        createdAt: n.createdAt.toISOString(),
-        createdByName: `${n.createdBy.firstName} ${n.createdBy.lastName}`,
-      }))}
-      classes={classes.map((c) => ({
-        id: c.id,
-        label: `${c.course.name} - Year ${c.year} ${c.section}`,
-      }))}
-      canCreate={true}
-      userId={session.user.id}
-      userRole="ADMIN"
-    />
+    <DashboardShell pageTitle="Notices">
+      <NoticesClient
+        notices={notices.map((n) => ({
+          id: n.id,
+          title: n.title,
+          content: n.content,
+          targetType: n.targetType,
+          targetId: n.targetId,
+          createdAt: n.createdAt.toISOString(),
+          createdByName: `${n.createdBy.firstName} ${n.createdBy.lastName}`,
+        }))}
+        classes={classes.map((c) => ({
+          id: c.id,
+          label: `${c.course.name} - Year ${c.year} ${c.section}`,
+        }))}
+        canCreate={true}
+        userId={session.user.id}
+        userRole="ADMIN"
+      />
+    </DashboardShell>
   )
 }
