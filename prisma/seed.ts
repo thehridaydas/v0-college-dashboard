@@ -239,14 +239,29 @@ async function main() {
     }
     console.log("✓ Teacher assignments created")
 
-    // --- Students (50) ---
-    console.log("Creating 50 students...")
+    // --- Students (200) ---
+    console.log("Creating 200 students...")
     const firstNames = [
       "Aarav","Priya","Rahul","Ananya","Vikram","Kavya","Arjun","Sneha","Karan","Pooja",
       "Rohan","Nisha","Siddharth","Divya","Aditya","Shreya","Manish","Ankita","Deepak","Simran",
       "Kunal","Riya","Nikhil","Tanvi","Harsh","Swati","Gaurav","Preeti","Varun","Neha",
       "Akash","Pallavi","Rohit","Shweta","Ajay","Meghna","Vijay","Sunaina","Piyush","Rekha",
       "Sandeep","Rashmi","Saurabh","Nandita","Vivek","Jyoti","Tarun","Lavanya","Madhav","Bhavna",
+      "Yash","Shruti","Kartik","Ridhi","Dhruv","Payal","Mohit","Aarti","Sumit","Komal",
+      "Sachin","Nidhi","Ravi","Shalini","Amit","Chitra","Vinay","Archana","Suresh","Leela",
+      "Balu","Geetha","Rajesh","Usha","Shankar","Saroja","Mani","Ambika","Velu","Kamala",
+      "Farhan","Sana","Imran","Zara","Salman","Nadia","Asif","Razia","Tariq","Hina",
+      "Jatin","Richa","Pranav","Swara","Nirav","Foram","Chirag","Hetal","Bhavin","Varsha",
+      "Lokesh","Sowmya","Karthik","Bhavani","Madhan","Meera","Suresh","Bharathi","Vignesh","Padma",
+      "Hitesh","Vandana","Vishal","Sarita","Sunil","Lata","Ramesh","Seema","Dinesh","Sunita",
+      "Arvind","Geeta","Kishore","Mamta","Naresh","Savita","Prakash","Shobha","Virendra","Sarla",
+      "Omkar","Ashwini","Tejas","Sanika","Ninad","Gauri","Harshal","Mugdha","Akshay","Sayali",
+      "Bishwajit","Pallabi","Subhajit","Ankita","Debdas","Supriya","Arnab","Tanushree","Sourav","Priyanka",
+      "Hardeep","Gurpreet","Manpreet","Navneet","Paramjit","Sukhwinder","Jaswinder","Kulwinder","Satinder","Tejinder",
+      "Venkatesh","Jayalakshmi","Raghavan","Alamelu","Thirumala","Saraswathi","Balaji","Revathi","Selvam","Malathi",
+      "Rizwan","Shabana","Mukhtar","Farzana","Riyaz","Samreen","Aslam","Gulnaz","Wasim","Rubina",
+      "Tejas","Ketki","Prasad","Sumedha","Aniket","Mrudula","Shubham","Apurva","Ronak","Dipali",
+      "Abhinav","Priyam","Shivam","Tanya","Gaurav","Simmi","Deepak","Ritu","Manav","Srishti",
     ]
     const lastNames = [
       "Singh","Gupta","Mehta","Joshi","Rao","Nair","Reddy","Pillai","Malhotra","Tiwari",
@@ -254,55 +269,63 @@ async function main() {
       "Kapoor","Khanna","Bhatia","Arora","Sethi","Chopra","Walia","Sood","Anand","Bajaj",
       "Kumar","Mishra","Tripathi","Pandey","Srivastava","Yadav","Chaudhary","Dubey","Shukla","Tomar",
       "Thakur","Rajput","Rathore","Chauhan","Bhadauria","Shekhawat","Ranawat","Jadeja","Solanki","Bhatt",
+      "Naidu","Reddy","Varma","Raju","Krishnan","Subramaniam","Pillai","Murthy","Swamy","Prasad",
+      "Khan","Ansari","Siddiqui","Sheikh","Malik","Qureshi","Mirza","Hussain","Akhtar","Beg",
+      "Patil","Kulkarni","Deshpande","Joshi","Shinde","Jadhav","Kale","More","Bhosale","Kadam",
+      "Choudhary","Sinha","Prasad","Jha","Roy","Mukherjee","Banerjee","Chakraborty","Sen","Dey",
+      "Nambiar","Kurup","Warrier","Karunakaran","Madhavan","Suresh","Babu","Nair","Menon","Pillai",
     ]
 
+    const TOTAL_STUDENTS = 200
     const studentUsers: string[] = []
-    for (let i = 0; i < 50; i++) {
-      const first = firstNames[i]
-      const last = lastNames[i]
-      const rollYear = i < 20 ? 2024 : i < 35 ? 2023 : 2022
-      const admYear = rollYear
+    for (let i = 0; i < TOTAL_STUDENTS; i++) {
+      const first = firstNames[i % firstNames.length]
+      const last = lastNames[i % lastNames.length]
+      // Give duplicate-name students a distinguishing middle initial so emails stay unique
+      const suffix = i >= firstNames.length ? `${Math.floor(i / firstNames.length)}` : ""
+      const rollYear = i < 80 ? 2024 : i < 140 ? 2023 : 2022
       const roll = `${rollYear}${String(i + 1).padStart(3, "0")}`
       const u = await prisma.user.create({
         data: {
           email: `student${i + 1}@college.edu`,
           password: hashedPassword,
-          firstName: first,
+          firstName: first + suffix,
           lastName: last,
           role: Role.STUDENT,
           student: {
             create: {
               rollNumber: roll,
               phone: `9${rand(600000000, 999999999)}`,
-              admissionYear: admYear,
+              admissionYear: rollYear,
               parentName: `${pick(["Mr.", "Mrs."])} ${last}`,
               parentPhone: `8${rand(600000000, 999999999)}`,
-              address: `${rand(1, 999)}, ${pick(["MG Road","Gandhi Nagar","Nehru Street","Patel Colony","Shastri Nagar"])}, ${pick(["Delhi","Mumbai","Bangalore","Chennai","Kolkata","Hyderabad","Pune","Jaipur"])}`,
-              dateOfBirth: new Date(2000 + rand(1, 5), rand(0, 11), rand(1, 28)),
+              address: `${rand(1, 999)}, ${pick(["MG Road","Gandhi Nagar","Nehru Street","Patel Colony","Shastri Nagar","Lal Bagh","Civil Lines","Model Town"])}, ${pick(["Delhi","Mumbai","Bangalore","Chennai","Kolkata","Hyderabad","Pune","Jaipur","Lucknow","Bhopal","Patna","Kochi"])}`,
+              dateOfBirth: new Date(1999 + rand(0, 5), rand(0, 11), rand(1, 28)),
             },
           },
         },
       })
       studentUsers.push(u.id)
     }
-    console.log("✓ 50 students created")
+    console.log(`✓ ${TOTAL_STUDENTS} students created`)
 
     // --- Enroll students ---
     console.log("Enrolling students...")
     const students = await prisma.student.findMany()
     const classSlots = [
-      ...Array(8).fill(bedY1A.id),
-      ...Array(7).fill(bedY1B.id),
-      ...Array(6).fill(bedY2A.id),
-      ...Array(5).fill(bedY2B.id),
-      ...Array(5).fill(bscY1A.id),
-      ...Array(4).fill(bscY2A.id),
-      ...Array(3).fill(bscY3A.id),
-      ...Array(4).fill(baY1A.id),
-      ...Array(3).fill(baY2A.id),
-      ...Array(3).fill(deledY1A.id),
-      ...Array(2).fill(deledY2A.id),
-    ]
+      ...Array(25).fill(bedY1A.id),
+      ...Array(22).fill(bedY1B.id),
+      ...Array(20).fill(bedY2A.id),
+      ...Array(18).fill(bedY2B.id),
+      ...Array(20).fill(bscY1A.id),
+      ...Array(18).fill(bscY2A.id),
+      ...Array(15).fill(bscY3A.id),
+      ...Array(18).fill(baY1A.id),
+      ...Array(16).fill(baY2A.id),
+      ...Array(15).fill(deledY1A.id),
+      ...Array(13).fill(deledY2A.id),
+      ...Array(10).fill(medY1A.id),
+    ] // total = 200
     for (let i = 0; i < students.length && i < classSlots.length; i++) {
       await prisma.enrollment.create({ data: { studentId: students[i].id, classId: classSlots[i] } })
     }
@@ -449,7 +472,7 @@ async function main() {
     console.log("✓ Notices distributed")
 
     console.log("\n✅ Seeding complete!")
-    console.log(`   Users: 1 admin, 1 principal, 10 teachers, 50 students`)
+    console.log(`   Users: 1 admin, 1 principal, 10 teachers, ${TOTAL_STUDENTS} students`)
     console.log(`   Courses: 5 | Classes: 12 | Subjects: ${allSubjects.length}`)
     console.log(`   Attendance: ${attCount} records | Marks: ${marksCount} | Fees: ${feeCount}`)
     console.log(`   Notices: ${createdNotices.length}`)
