@@ -54,7 +54,6 @@ pnpm db:seed         # Seed demo data
 pnpm dev
 ```
 
-
 Open [http://localhost:3000](http://localhost:3000)
 
 ## Demo Credentials
@@ -88,3 +87,5 @@ prisma/
   schema.prisma   # Database schema
   seed.ts         # Demo data seeder
 ```
+
+Test
