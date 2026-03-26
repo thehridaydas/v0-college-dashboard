@@ -43,17 +43,17 @@ export function Topbar({ pageTitle, onMenuClick, notifications = [] }: TopbarPro
 
       {/* Page title */}
       <div className="flex-1 min-w-0">
-        <h1 className="text-sm font-semibold text-foreground truncate">{pageTitle}</h1>
+        <div className="hidden md:flex items-center gap-2 h-8 px-3 rounded-lg border border-border bg-muted/50 text-xs text-muted-foreground">
+          <Search className="w-4 h-4 flex-shrink-0" />
+          <input
+            type="text"
+            placeholder="Search students, teachers, classes..."
+            className="flex-1 bg-transparent border-0 outline-none text-sm placeholder-muted-foreground text-foreground"
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5">
-        {/* Search shortcut */}
-        <button className="hidden md:flex items-center gap-2 h-8 px-3 rounded-lg border border-border bg-muted/50 text-xs text-muted-foreground hover:bg-muted transition-colors">
-          <Search className="w-3.5 h-3.5" />
-          <span>Search</span>
-          <kbd className="ml-2 text-[10px] font-mono bg-background border border-border rounded px-1 py-0.5">⌘K</kbd>
-        </button>
-
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
