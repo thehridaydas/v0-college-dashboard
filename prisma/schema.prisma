@@ -1,0 +1,316 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PRINCIPAL
+}
+
+enum FeeStatus {
+  PENDING
+  SUBMITTED
+  VERIFIED
+  REJECTED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum ExamType {
+  INTERNAL
+  EXTERNAL
+  ASSIGNMENT
+  PRACTICAL
+}
+
+enum NoticeTarget {
+  ALL
+  CLASS
+  ROLE
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student   Student?
+  teacher   Teacher?
+  admin     Admin?
+  principal Principal?
+
+  noticesCreated    Notice[]
+  noticeRecipients  NoticeRecipient[]
+  sessions          Session[]
+  accounts          Account[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Student {
+  id         String  @id @default(cuid())
+  userId     String  @unique
+  rollNumber String  @unique
+  phone      String?
+  address    String?
+  parentName String?
+  parentPhone String?
+  dateOfBirth DateTime?
+  admissionYear Int  @default(2024)
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollments Enrollment[]
+  classAttendance ClassAttendance[]
+  subjectAttendance SubjectAttendance[]
+  marks       Mark[]
+  fees        Fee[]
+}
+
+model Teacher {
+  id         String  @id @default(cuid())
+  userId     String  @unique
+  employeeId String  @unique
+  department String?
+  phone      String?
+  qualification String?
+  joiningDate DateTime?
+
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignments TeacherAssignment[]
+  marksGiven  Mark[]
+  feesVerified Fee[]
+}
+
+model Admin {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Principal {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Course {
+  id        String  @id @default(cuid())
+  name      String  @unique
+  code      String  @unique
+  duration  Int     @default(4) // years
+  description String?
+  createdAt DateTime @default(now())
+
+  classes Class[]
+}
+
+model Class {
+  id        String @id @default(cuid())
+  courseId  String
+  year      Int
+  section   String
+  createdAt DateTime @default(now())
+
+  course      Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  subjects    Subject[]
+  enrollments Enrollment[]
+  assignments TeacherAssignment[]
+  classAttendance ClassAttendance[]
+  subjectAttendance SubjectAttendance[]
+
+  @@unique([courseId, year, section])
+}
+
+model Subject {
+  id      String @id @default(cuid())
+  classId String
+  name    String
+  code    String
+  credits Int    @default(4)
+  createdAt DateTime @default(now())
+
+  class             Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  assignments       TeacherAssignment[]
+  marks             Mark[]
+  subjectAttendance SubjectAttendance[]
+
+  @@unique([classId, code])
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  studentId String
+  classId   String
+  enrolledAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, classId])
+}
+
+model TeacherAssignment {
+  id             String  @id @default(cuid())
+  teacherId      String
+  classId        String
+  subjectId      String?
+  isClassTeacher Boolean @default(false)
+  createdAt      DateTime @default(now())
+
+  teacher Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class   Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+
+  @@unique([teacherId, classId, subjectId])
+}
+
+model ClassAttendance {
+  id        String           @id @default(cuid())
+  studentId String
+  classId   String
+  date      DateTime         @db.Date
+  status    AttendanceStatus @default(PRESENT)
+  remarks   String?
+  createdAt DateTime         @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, classId, date])
+}
+
+model SubjectAttendance {
+  id        String           @id @default(cuid())
+  studentId String
+  classId   String
+  subjectId String
+  date      DateTime         @db.Date
+  status    AttendanceStatus @default(PRESENT)
+  remarks   String?
+  createdAt DateTime         @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, subjectId, date])
+}
+
+model Mark {
+  id        String   @id @default(cuid())
+  studentId String
+  subjectId String
+  teacherId String
+  marks     Float
+  maxMarks  Float    @default(100)
+  examType  ExamType @default(INTERNAL)
+  examDate  DateTime?
+  remarks   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, subjectId, examType])
+}
+
+model Fee {
+  id                 String    @id @default(cuid())
+  studentId          String
+  amount             Float
+  dueDate            DateTime
+  status             FeeStatus @default(PENDING)
+  utr                String?
+  description        String?
+  isExtraFee         Boolean   @default(false)
+  verifiedByTeacherId String?
+  verifiedAt         DateTime?
+  submittedAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  verifiedBy     Teacher? @relation(fields: [verifiedByTeacherId], references: [id], onDelete: SetNull)
+}
+
+model Notice {
+  id          String       @id @default(cuid())
+  title       String
+  content     String
+  targetType  NoticeTarget @default(ALL)
+  targetId    String?      // classId or role string
+  createdById String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  createdBy  User              @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  recipients NoticeRecipient[]
+}
+
+model NoticeRecipient {
+  id       String  @id @default(cuid())
+  noticeId String
+  userId   String
+  isRead   Boolean  @default(false)
+  readAt   DateTime?
+
+  notice Notice @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([noticeId, userId])
+}
