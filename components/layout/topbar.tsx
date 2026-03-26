@@ -1,6 +1,6 @@
 "use client"
 
-import { Menu, Bell, Sun, Moon, Search } from "lucide-react"
+import { Menu, Bell, Sun, Moon } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { GlobalSearch } from "./global-search"
 
 interface TopbarProps {
   pageTitle: string
@@ -41,16 +42,9 @@ export function Topbar({ pageTitle, onMenuClick, notifications = [] }: TopbarPro
         <span className="sr-only">Open menu</span>
       </Button>
 
-      {/* Page title */}
-      <div className="flex-1 min-w-0">
-        <div className="hidden md:flex items-center gap-2 h-8 px-3 rounded-lg border border-border bg-muted/50 text-xs text-muted-foreground">
-          <Search className="w-4 h-4 flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="Search students, teachers, classes..."
-            className="flex-1 bg-transparent border-0 outline-none text-sm placeholder-muted-foreground text-foreground"
-          />
-        </div>
+      {/* Global search */}
+      <div className="hidden md:flex flex-1 min-w-0">
+        <GlobalSearch />
       </div>
 
       <div className="flex items-center gap-1.5">
