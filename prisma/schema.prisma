@@ -115,6 +115,8 @@ model Student {
   subjectAttendance SubjectAttendance[]
   marks       Mark[]
   fees        Fee[]
+
+  @@index([userId])
 }
 
 model Teacher {
@@ -130,6 +132,8 @@ model Teacher {
   assignments TeacherAssignment[]
   marksGiven  Mark[]
   feesVerified Fee[]
+
+  @@index([userId])
 }
 
 model Admin {
@@ -200,6 +204,8 @@ model Enrollment {
   class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, classId])
+  @@index([studentId])
+  @@index([classId])
 }
 
 model TeacherAssignment {
@@ -230,6 +236,9 @@ model ClassAttendance {
   class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, classId, date])
+  @@index([studentId, date])
+  @@index([classId, date])
+  @@index([status])
 }
 
 model SubjectAttendance {
@@ -267,6 +276,9 @@ model Mark {
   teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, subjectId, examType])
+  @@index([studentId])
+  @@index([teacherId])
+  @@index([subjectId])
 }
 
 model Fee {
@@ -286,6 +298,10 @@ model Fee {
 
   student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   verifiedBy     Teacher? @relation(fields: [verifiedByTeacherId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([status])
+  @@index([verifiedByTeacherId])
 }
 
 model Notice {
@@ -300,6 +316,9 @@ model Notice {
 
   createdBy  User              @relation(fields: [createdById], references: [id], onDelete: Cascade)
   recipients NoticeRecipient[]
+
+  @@index([targetType, targetId])
+  @@index([createdAt])
 }
 
 model NoticeRecipient {
@@ -313,4 +332,5 @@ model NoticeRecipient {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([noticeId, userId])
+  @@index([userId, isRead])
 }
