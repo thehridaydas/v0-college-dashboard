@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
+import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { TeacherClassesClient } from "@/components/teacher/classes/teacher-classes-client"
 
 export const metadata = { title: "My Classes | EduManage" }
@@ -10,9 +11,7 @@ export default async function TeacherClassesPage() {
   const session = await getServerSession(authOptions)
   if (!session || session.user.role !== "TEACHER") redirect("/login")
 
-  const teacher = await db.teacher.findUnique({
-    where: { userId: session.user.id },
-  })
+  const teacher = await db.teacher.findUnique({ where: { userId: session.user.id } })
   if (!teacher) redirect("/login")
 
   const assignments = await db.teacherAssignment.findMany({
@@ -34,7 +33,6 @@ export default async function TeacherClassesPage() {
     orderBy: { createdAt: "asc" },
   })
 
-  // Group by classId
   const classMap = new Map<string, {
     classId: string
     classLabel: string
@@ -47,11 +45,10 @@ export default async function TeacherClassesPage() {
 
   for (const a of assignments) {
     const key = a.classId
-    const label = `${a.class.course.code} - Year ${a.class.year}, Sec ${a.class.section}`
     if (!classMap.has(key)) {
       classMap.set(key, {
         classId: key,
-        classLabel: label,
+        classLabel: `${a.class.course.code} - Year ${a.class.year}, Sec ${a.class.section}`,
         courseName: a.class.course.name,
         isClassTeacher: a.isClassTeacher,
         subjects: [],
@@ -69,5 +66,9 @@ export default async function TeacherClassesPage() {
     if (a.isClassTeacher) entry.isClassTeacher = true
   }
 
-  return <TeacherClassesClient classes={Array.from(classMap.values())} />
+  return (
+    <DashboardShell pageTitle="My Classes">
+      <TeacherClassesClient classes={Array.from(classMap.values())} />
+    </DashboardShell>
+  )
 }
