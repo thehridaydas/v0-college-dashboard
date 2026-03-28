@@ -1,14 +1,9 @@
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { redirect } from "next/navigation"
+// Auth is handled by middleware — no async session check here so this renders instantly
 import { SessionProvider } from "@/components/session-provider"
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(authOptions)
-  if (!session) redirect("/login")
-
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider session={session}>
+    <SessionProvider session={null}>
       {children}
     </SessionProvider>
   )

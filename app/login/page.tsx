@@ -36,6 +36,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginInput) => {
     setIsLoading(true)
     try {
+      // First do a redirect:false call to catch errors, then redirect manually
       const result = await signIn("credentials", {
         email: data.email.toLowerCase(),
         password: data.password,
@@ -44,14 +45,18 @@ export default function LoginPage() {
 
       if (result?.error) {
         toast.error(result.error)
-      } else {
-        toast.success("Welcome back!")
-        router.push("/")
-        router.refresh()
+        setIsLoading(false)
+        return
       }
+
+      // Auth succeeded — fetch the session to know the role, then redirect directly
+      // Using router.replace avoids adding a history entry for the login page
+      const { getSession } = await import("next-auth/react")
+      const session = await getSession()
+      const role = session?.user?.role?.toLowerCase() ?? "student"
+      router.replace(`/dashboard/${role}`)
     } catch {
       toast.error("Something went wrong. Please try again.")
-    } finally {
       setIsLoading(false)
     }
   }
