@@ -8,28 +8,28 @@ export default withAuth(
     const token = req.nextauth.token
     const pathname = req.nextUrl.pathname
 
-    // If no token, redirect to login (withAuth handles this, but be explicit)
+    // No token — unauthenticated user.
+    // If they're hitting /login, let them through. Otherwise send to /login.
     if (!token) {
+      if (pathname === "/login") return NextResponse.next()
       return NextResponse.redirect(new URL("/login", req.url))
     }
 
     const role = (token.role as string).toLowerCase()
     const userDashboard = `/dashboard/${role}`
 
-    // If the user is already authenticated and hits /login, send them to their dashboard.
-    // This prevents the back button from returning to the login page.
+    // Authenticated user hitting /login → send to their dashboard (prevents back-button loop).
     if (pathname === "/login") {
       return NextResponse.redirect(new URL(userDashboard, req.url))
     }
 
-    // Validate that the URL is a known role prefix.
-    // Unknown paths like /dashboard/dashboard or /dashboard/xyz redirect to own dashboard.
+    // Unknown dashboard path (e.g. /dashboard/dashboard, /dashboard/xyz) → own dashboard.
     const matchedRole = VALID_ROLES.find((r) => pathname.startsWith(`/dashboard/${r}`))
     if (!matchedRole) {
       return NextResponse.redirect(new URL(userDashboard, req.url))
     }
 
-    // If the matched role doesn't belong to this user, redirect to their own dashboard.
+    // Wrong role in URL (e.g. admin visiting /dashboard/student) → own dashboard.
     if (matchedRole !== role) {
       return NextResponse.redirect(new URL(userDashboard, req.url))
     }
@@ -38,13 +38,12 @@ export default withAuth(
   },
   {
     callbacks: {
-      // Allow middleware function to run for all matched routes (authenticated or not)
+      // Let the middleware function above handle all auth logic itself.
       authorized: () => true,
     },
   }
 )
 
 export const config = {
-  // Include /login so authenticated users are redirected away from it
   matcher: ["/dashboard/:path*", "/login"],
 }
