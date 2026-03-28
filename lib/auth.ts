@@ -5,7 +5,7 @@ import { db } from "@/lib/db"
 import { Role } from "@prisma/client"
 
 export const authOptions: NextAuthOptions = {
-  secret: process.env.NEXTAUTH_SECRET ?? "fallback-dev-secret-change-in-production",
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
     // Cache JWT for 24 hours - avoids re-validating on every request

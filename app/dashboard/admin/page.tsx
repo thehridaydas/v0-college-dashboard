@@ -9,6 +9,8 @@ export const metadata = { title: "Dashboard | EduManage" }
 
 async function AdminDashboardContent() {
   const session = await getServerSession(authOptions)
+  // Middleware guarantees this runs only for authenticated admins, but guard defensively
+  if (!session) return null
 
   const [counts, feesByStatus, attendanceStats] = await Promise.all([
     db.$transaction([
@@ -16,7 +18,7 @@ async function AdminDashboardContent() {
       db.teacher.count(),
       db.class.count(),
       db.fee.count({ where: { status: "PENDING" } }),
-      db.noticeRecipient.count({ where: { userId: session!.user.id, isRead: false } }),
+      db.noticeRecipient.count({ where: { userId: session.user.id, isRead: false } }),
     ]),
     db.fee.groupBy({
       by: ["status"],

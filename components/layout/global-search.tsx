@@ -61,6 +61,19 @@ export function GlobalSearch() {
     return () => document.removeEventListener("mousedown", handler)
   }, [])
 
+  // Cmd+K / Ctrl+K to focus search from anywhere in the app
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault()
+        inputRef.current?.focus()
+        setOpen(true)
+      }
+    }
+    document.addEventListener("keydown", handler)
+    return () => document.removeEventListener("keydown", handler)
+  }, [])
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") { e.preventDefault(); setSelected((s) => Math.min(s + 1, results.length - 1)) }
     if (e.key === "ArrowUp") { e.preventDefault(); setSelected((s) => Math.max(s - 1, 0)) }
@@ -105,6 +118,11 @@ export function GlobalSearch() {
           placeholder="Search..."
           className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground text-foreground min-w-0"
         />
+        {!query && (
+          <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground shrink-0">
+            ⌘K
+          </kbd>
+        )}
       </div>
 
       {open && query.trim().length >= 2 && (

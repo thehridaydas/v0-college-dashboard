@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
+import useSWR from "swr"
 import { Sidebar } from "./sidebar"
 import { Topbar } from "./topbar"
 import { cn } from "@/lib/utils"
 
+const fetcher = (url: string) => fetch(url).then((r) => r.json())
+
 interface DashboardShellProps {
   children: React.ReactNode
   pageTitle?: string
-  notifications?: Array<{ id: string; title: string; description?: string; time?: string; read?: boolean }>
 }
 
 function deriveTitle(pathname: string): string {
@@ -24,14 +26,31 @@ function deriveTitle(pathname: string): string {
 
 const SIDEBAR_KEY = "sidebar-collapsed"
 
-export function DashboardShell({ children, pageTitle, notifications = [] }: DashboardShellProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false
-    return localStorage.getItem(SIDEBAR_KEY) === "true"
-  })
+export function DashboardShell({ children, pageTitle }: DashboardShellProps) {
+  // Start with false on both server and client to avoid hydration mismatch.
+  // Read localStorage only after mount in useEffect.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
   const title = pageTitle || deriveTitle(pathname)
+
+  useEffect(() => {
+    const stored = localStorage.getItem(SIDEBAR_KEY)
+    if (stored === "true") setSidebarCollapsed(true)
+  }, [])
+
+  // Fetch unread notices for the notification bell — runs client-side only.
+  const { data: noticesData } = useSWR("/api/notices", fetcher, { refreshInterval: 60_000 })
+  const notifications = (noticesData?.notices ?? [])
+    .filter((n: any) => !n.recipients?.[0]?.isRead)
+    .slice(0, 10)
+    .map((n: any) => ({
+      id: n.id,
+      title: n.title,
+      description: n.content?.slice(0, 80),
+      time: new Date(n.createdAt).toLocaleDateString(),
+      read: n.recipients?.[0]?.isRead ?? false,
+    }))
 
   const handleToggle = () => {
     setSidebarCollapsed((v) => {
