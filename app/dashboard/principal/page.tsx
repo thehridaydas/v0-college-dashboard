@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { PrincipalOverview } from "@/components/principal/principal-overview"
 
 export const metadata = { title: "Principal Dashboard | EduManage" }
@@ -49,8 +48,7 @@ export default async function PrincipalDashboardPage() {
   const pendingFees = feeStats.find((f) => f.status === "PENDING")
 
   return (
-    <DashboardShell pageTitle="Dashboard">
-      <PrincipalOverview
+    <PrincipalOverview
         stats={{
           totalStudents,
           totalTeachers,
@@ -80,6 +78,5 @@ export default async function PrincipalDashboardPage() {
         }))}
         principalName={`${session.user.firstName} ${session.user.lastName}`}
       />
-    </DashboardShell>
   )
 }

@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { PrincipalReportsClient } from "@/components/principal/reports/principal-reports-client"
 
 export const metadata = { title: "Reports | EduManage" }
@@ -41,8 +40,7 @@ export default async function PrincipalReportsPage() {
   ])
 
   return (
-    <DashboardShell pageTitle="Reports">
-      <PrincipalReportsClient
+    <PrincipalReportsClient
         studentReport={students.map((s) => {
           const enrollment = s.enrollments[0]
           const verifiedFees = s.fees.filter((f) => f.status === "VERIFIED").reduce((a, b) => a + b.amount, 0)
@@ -77,6 +75,5 @@ export default async function PrincipalReportsPage() {
           subjectCount: t.assignments.filter((a) => a.subjectId).length,
         }))}
       />
-    </DashboardShell>
   )
 }

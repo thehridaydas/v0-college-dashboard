@@ -1,8 +1,6 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { AdminSettingsClient } from "@/components/admin/settings/admin-settings-client"
 
 export const metadata = { title: "Settings | EduManage" }
@@ -19,8 +17,7 @@ export default async function AdminSettingsPage() {
   ])
 
   return (
-    <DashboardShell pageTitle="Settings">
-      <AdminSettingsClient
+    <AdminSettingsClient
         user={{
           firstName: session.user.firstName,
           lastName: session.user.lastName,
@@ -29,6 +26,5 @@ export default async function AdminSettingsPage() {
         }}
         systemInfo={{ totalStudents, totalTeachers, totalClasses, totalCourses }}
       />
-    </DashboardShell>
   )
 }

@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { TeacherClassesClient } from "@/components/teacher/classes/teacher-classes-client"
 
 export const metadata = { title: "My Classes | EduManage" }
@@ -77,9 +76,5 @@ export default async function TeacherClassesPage() {
     if (a.isClassTeacher) entry.isClassTeacher = true
   }
 
-  return (
-    <DashboardShell pageTitle="My Classes">
-      <TeacherClassesClient classes={Array.from(classMap.values())} />
-    </DashboardShell>
-  )
+  return <TeacherClassesClient classes={Array.from(classMap.values())} />
 }

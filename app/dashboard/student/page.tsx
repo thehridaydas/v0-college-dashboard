@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { StudentOverview } from "@/components/student/student-overview"
 
 export const metadata = { title: "Student Dashboard | EduManage" }
@@ -66,8 +65,7 @@ export default async function StudentDashboardPage() {
   const attendancePct = totalAttendance > 0 ? Math.round(((presentCount + lateCount) / totalAttendance) * 100) : 0
 
   return (
-    <DashboardShell pageTitle="Dashboard">
-      <StudentOverview
+    <StudentOverview
         student={{
           name: `${session.user.firstName} ${session.user.lastName}`,
           rollNumber: student.rollNumber,
@@ -102,6 +100,5 @@ export default async function StudentDashboardPage() {
           createdAt: n.createdAt.toISOString(),
         }))}
       />
-    </DashboardShell>
   )
 }

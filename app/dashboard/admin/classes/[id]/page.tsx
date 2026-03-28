@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { ClassDetailClient } from "@/components/admin/classes/class-detail-client"
 
 export default async function ClassDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -68,8 +67,7 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
   )
 
   return (
-    <DashboardShell pageTitle={`${cls.course.name} — Year ${cls.year} ${cls.section}`}>
-      <ClassDetailClient
+    <ClassDetailClient
         cls={{
           id: cls.id,
           year: cls.year,
@@ -121,6 +119,5 @@ export default async function ClassDetailPage({ params }: { params: Promise<{ id
             : null,
         }))}
       />
-    </DashboardShell>
   )
 }

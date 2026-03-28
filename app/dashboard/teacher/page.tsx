@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { TeacherOverview } from "@/components/teacher/teacher-overview"
 
 export default async function TeacherDashboardPage() {
@@ -20,11 +19,7 @@ export default async function TeacherDashboardPage() {
   })
 
   if (!teacher) {
-    return (
-      <DashboardShell pageTitle="Dashboard">
-        <p className="text-muted-foreground">Teacher profile not found. Please contact admin.</p>
-      </DashboardShell>
-    )
+    return <p className="text-muted-foreground">Teacher profile not found. Please contact admin.</p>
   }
 
   const myClassIds = teacher.assignments.map((a) => a.classId)
@@ -69,8 +64,7 @@ export default async function TeacherDashboardPage() {
   const uniqueClasses = new Set(teacher.assignments.map((a) => a.classId)).size
 
   return (
-    <DashboardShell pageTitle="Dashboard">
-      <TeacherOverview
+    <TeacherOverview
         teacher={{
           name: `${session!.user.firstName} ${session!.user.lastName}`,
           employeeId: teacher.employeeId,
@@ -99,6 +93,5 @@ export default async function TeacherDashboardPage() {
         attendanceSummary={attendanceSummary}
         recentNotices={notices}
       />
-    </DashboardShell>
   )
 }

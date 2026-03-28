@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { StudentProfileClient } from "@/components/student/profile/student-profile-client"
 
 export const metadata = { title: "My Profile | EduManage" }
@@ -40,8 +39,7 @@ export default async function StudentProfilePage() {
   const classTeacher = enrollment?.class.assignments[0]?.teacher
 
   return (
-    <DashboardShell pageTitle="My Profile">
-      <StudentProfileClient
+    <StudentProfileClient
         profile={{
           firstName: student.user.firstName,
           lastName: student.user.lastName,
@@ -62,6 +60,5 @@ export default async function StudentProfilePage() {
             : null,
         }}
       />
-    </DashboardShell>
   )
 }
