@@ -1,12 +1,10 @@
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent } from "@/components/ui/card"
 import { TableSkeleton } from "@/components/ui/skeletons"
 
 export default function ClassDetailLoading() {
   return (
-    <DashboardShell>
-      <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-4 h-full">
         {/* Back button + title */}
         <div className="flex items-center gap-3 shrink-0">
           <Skeleton className="h-8 w-8 rounded-md" />
@@ -42,6 +40,5 @@ export default function ClassDetailLoading() {
         {/* Table */}
         <TableSkeleton rows={8} cols={4} />
       </div>
-    </DashboardShell>
   )
 }

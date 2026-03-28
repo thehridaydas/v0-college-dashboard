@@ -1,8 +1,11 @@
+import { Suspense } from "react"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { AdminClassesClient } from "@/components/admin/classes/admin-classes-client"
+import { ClassCardsSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons"
 
-export default async function AdminClassesPage() {
+export const metadata = { title: "Classes | EduManage" }
+
+async function ClassesContent() {
   const [classes, courses, teachers] = await Promise.all([
     db.class.findMany({
       include: {
@@ -24,25 +27,40 @@ export default async function AdminClassesPage() {
   ])
 
   return (
-    <DashboardShell pageTitle="Classes">
-      <AdminClassesClient
-        classes={classes.map((c) => ({
-          id: c.id,
-          year: c.year,
-          section: c.section,
-          courseName: c.course.name,
-          courseCode: c.course.code,
-          courseId: c.courseId,
-          studentCount: c._count.enrollments,
-          subjectCount: c._count.subjects,
-          classTeacher: c.assignments[0]
-            ? `${c.assignments[0].teacher.user.firstName} ${c.assignments[0].teacher.user.lastName}`
-            : null,
-          classTeacherId: c.assignments[0]?.teacherId ?? null,
-        }))}
-        courses={courses.map((c) => ({ id: c.id, name: c.name, code: c.code }))}
-        teachers={teachers.map((t) => ({ id: t.id, name: `${t.user.firstName} ${t.user.lastName}` }))}
-      />
-    </DashboardShell>
+    <AdminClassesClient
+      classes={classes.map((c) => ({
+        id: c.id,
+        year: c.year,
+        section: c.section,
+        courseName: c.course.name,
+        courseCode: c.course.code,
+        courseId: c.courseId,
+        studentCount: c._count.enrollments,
+        subjectCount: c._count.subjects,
+        classTeacher: c.assignments[0]
+          ? `${c.assignments[0].teacher.user.firstName} ${c.assignments[0].teacher.user.lastName}`
+          : null,
+        classTeacherId: c.assignments[0]?.teacherId ?? null,
+      }))}
+      courses={courses.map((c) => ({ id: c.id, name: c.name, code: c.code }))}
+      teachers={teachers.map((t) => ({ id: t.id, name: `${t.user.firstName} ${t.user.lastName}` }))}
+    />
+  )
+}
+
+function ClassesPageSkeleton() {
+  return (
+    <div className="flex flex-col gap-4 h-full">
+      <PageHeaderSkeleton />
+      <ClassCardsSkeleton count={12} />
+    </div>
+  )
+}
+
+export default function AdminClassesPage() {
+  return (
+    <Suspense fallback={<ClassesPageSkeleton />}>
+      <ClassesContent />
+    </Suspense>
   )
 }
