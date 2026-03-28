@@ -49,12 +49,13 @@ export default function LoginPage() {
         return
       }
 
-      // Auth succeeded — fetch the session to know the role, then redirect directly
-      // Using router.replace avoids adding a history entry for the login page
+      // Auth succeeded — fetch the session to know the role, then redirect directly.
+      // Use window.location.replace so the login page is fully removed from browser history,
+      // preventing the back button from returning to the login screen.
       const { getSession } = await import("next-auth/react")
       const session = await getSession()
       const role = session?.user?.role?.toLowerCase() ?? "student"
-      router.replace(`/dashboard/${role}`)
+      window.location.replace(`/dashboard/${role}`)
     } catch {
       toast.error("Something went wrong. Please try again.")
       setIsLoading(false)
