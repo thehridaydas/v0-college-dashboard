@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StatsCard } from "@/components/dashboard/stats-card"
+import { DashboardCalendar } from "@/components/dashboard/dashboard-calendar"
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -38,6 +39,7 @@ const FEE_COLORS: Record<string, string> = {
 }
 
 export function PrincipalOverview({ stats, recentNotices, topClasses, feeStats, principalName }: Props) {
+  const calendarNotices = recentNotices.map((n) => ({ id: n.id, title: n.title, createdAt: n.createdAt }))
   const classChartData = topClasses.map((c) => ({
     name: c.label,
     students: c.studentCount,
@@ -50,7 +52,8 @@ export function PrincipalOverview({ stats, recentNotices, topClasses, feeStats, 
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="flex gap-6 items-start">
+    <div className="flex-1 min-w-0 space-y-6">
       {/* Welcome banner */}
       <div className="rounded-xl bg-[#2E8B57] px-6 py-4 text-white flex items-center justify-between">
         <div>
@@ -231,6 +234,10 @@ export function PrincipalOverview({ stats, recentNotices, topClasses, feeStats, 
           </CardContent>
         </Card>
       </div>
+    </div>
+    <div className="hidden xl:block">
+      <DashboardCalendar notices={calendarNotices} />
+    </div>
     </div>
   )
 }

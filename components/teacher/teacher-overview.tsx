@@ -4,6 +4,7 @@ import { BookOpen, Users, CreditCard, Award, BookMarked, Bell } from "lucide-rea
 import { StatsCard } from "@/components/dashboard/stats-card"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { DashboardCalendar } from "@/components/dashboard/dashboard-calendar"
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { formatDistanceToNow } from "date-fns"
 
@@ -47,13 +48,19 @@ const EXAM_TYPE_COLOR: Record<string, string> = {
 }
 
 export function TeacherOverview({ teacher, stats, assignments, recentMarks, attendanceSummary, recentNotices }: Props) {
+  const calendarNotices = recentNotices.map((n) => ({
+    id: n.id,
+    title: n.title,
+    createdAt: n.createdAt instanceof Date ? n.createdAt.toISOString() : n.createdAt,
+  }))
   const attendancePieData = attendanceSummary.map((s) => ({
     name: s.status,
     value: s._count.status,
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="flex gap-6 items-start">
+    <div className="flex-1 min-w-0 space-y-6">
       {/* Welcome banner */}
       <div className="rounded-xl bg-[#2E8B57] px-6 py-4 text-white flex items-center justify-between">
         <div>
@@ -225,6 +232,10 @@ export function TeacherOverview({ teacher, stats, assignments, recentMarks, atte
           </CardContent>
         </Card>
       </div>
+    </div>
+    <div className="hidden xl:block">
+      <DashboardCalendar notices={calendarNotices} />
+    </div>
     </div>
   )
 }

@@ -34,7 +34,7 @@ async function AdminDashboardContent() {
 
   const [totalStudents, totalTeachers, totalClasses, pendingFees, notices] = counts
 
-  const [recentActivity, allStudents] = await Promise.all([
+  const [recentActivity, allStudents, recentNotices] = await Promise.all([
     db.user.findMany({
       where: { role: { in: ["STUDENT", "TEACHER"] } },
       orderBy: { createdAt: "desc" },
@@ -47,6 +47,11 @@ async function AdminDashboardContent() {
         createdAt: { gte: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000) },
       },
       select: { createdAt: true },
+    }),
+    db.notice.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: { id: true, title: true, createdAt: true },
     }),
   ])
 
@@ -72,6 +77,7 @@ async function AdminDashboardContent() {
       monthlyData={monthlyData}
       feesByStatus={feesByStatus}
       attendanceStats={attendanceStats}
+      notices={recentNotices.map((n) => ({ id: n.id, title: n.title, createdAt: n.createdAt.toISOString() }))}
     />
   )
 }
