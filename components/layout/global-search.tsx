@@ -20,9 +20,15 @@ export function GlobalSearch() {
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState(0)
+  // Detect OS after mount — undefined during SSR to avoid hydration mismatch
+  const [isMac, setIsMac] = useState<boolean | undefined>(undefined)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    setIsMac(navigator.platform.toUpperCase().includes("MAC") || navigator.userAgent.includes("Mac"))
+  }, [])
 
   const search = useCallback(async (q: string) => {
     if (q.trim().length < 2) {
@@ -118,9 +124,9 @@ export function GlobalSearch() {
           placeholder="Search..."
           className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-muted-foreground text-foreground min-w-0"
         />
-        {!query && (
+        {!query && isMac !== undefined && (
           <kbd className="hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground shrink-0">
-            ⌘K
+            {isMac ? "⌘" : "Ctrl"} K
           </kbd>
         )}
       </div>
