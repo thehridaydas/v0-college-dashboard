@@ -98,8 +98,19 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
-  const { data: session } = useSession()
-  const role = session?.user?.role ?? "STUDENT"
+  const { data: session, status } = useSession()
+
+  // While the session is loading, derive the role from the URL path so the
+  // correct nav items show immediately without waiting for the session fetch.
+  // This eliminates the "STUDENT" flicker when navigating to a non-student route.
+  const roleFromUrl = pathname.split("/")[2]?.toUpperCase() ?? ""
+  const validRoles = ["ADMIN", "TEACHER", "STUDENT", "PRINCIPAL"]
+  const fallbackRole = validRoles.includes(roleFromUrl) ? roleFromUrl : "STUDENT"
+
+  const role = status === "loading"
+    ? fallbackRole
+    : (session?.user?.role ?? fallbackRole)
+
   const navItems = navByRole[role] ?? []
 
   const initials = session?.user
