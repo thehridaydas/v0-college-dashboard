@@ -1,10 +1,5 @@
-// Auth is handled by middleware — no async session check here so this renders instantly
-import { SessionProvider } from "@/components/session-provider"
-
+// Auth is handled by middleware — this layout is intentionally minimal.
+// SessionProvider lives at the root layout level.
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <SessionProvider>
-      {children}
-    </SessionProvider>
-  )
+  return <>{children}</>
 }
