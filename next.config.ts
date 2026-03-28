@@ -1,8 +1,11 @@
 import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
-  // Disable the Next.js dev toolbar/indicator
-  devIndicators: false,
+  // Disable the Next.js dev toolbar/indicator (appIsrStatus for older Next.js versions)
+  devIndicators: {
+    appIsrStatus: false,
+    buildActivity: false,
+  },
 
   // Enable React strict mode for better development experience
   reactStrictMode: false, // Disabled to avoid double-rendering in dev which doubles DB queries
