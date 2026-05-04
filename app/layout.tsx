@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${geistMono.variable} font-sans antialiased`}>
         <SessionProvider>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="college-theme">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="college-theme">
           {children}
           <Toaster
             position="bottom-right"

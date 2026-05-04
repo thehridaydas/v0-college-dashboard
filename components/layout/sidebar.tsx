@@ -82,12 +82,6 @@ const navByRole: Record<string, NavItem[]> = {
   ],
 }
 
-const roleBadgeColor: Record<string, string> = {
-  ADMIN: "bg-[#2E8B57]/20 text-[#2E8B57]",
-  TEACHER: "bg-blue-500/20 text-blue-400",
-  STUDENT: "bg-purple-500/20 text-purple-400",
-  PRINCIPAL: "bg-amber-500/20 text-amber-400",
-}
 
 interface SidebarProps {
   collapsed: boolean
@@ -141,7 +135,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
             <div className="w-7 h-7 rounded-lg bg-[#2E8B57] flex items-center justify-center shrink-0">
               <GraduationCap className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-semibold text-sidebar-foreground truncate text-sm">EduManage</span>
+            <span className="font-semibold text-sidebar-foreground truncate text-sm">TGCE</span>
           </Link>
         )}
         <button
@@ -152,15 +146,6 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           <ChevronRight className={cn("w-4 h-4 text-sidebar-foreground/60 transition-transform duration-300", !collapsed && "rotate-180")} />
         </button>
       </div>
-
-      {/* Role badge */}
-      {!collapsed && (
-        <div className="px-4 pt-4 pb-2">
-          <span className={cn("text-xs font-semibold px-2 py-1 rounded-md", roleBadgeColor[role])}>
-            {role}
-          </span>
-        </div>
-      )}
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
