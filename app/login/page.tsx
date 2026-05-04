@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
-import { Eye, EyeOff, GraduationCap, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -68,152 +68,104 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
-      {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#141414] flex-col justify-between p-12 relative overflow-hidden">
-        {/* Background grid */}
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage:
-              "linear-gradient(#2E8B57 1px, transparent 1px), linear-gradient(90deg, #2E8B57 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-        {/* Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-[#2E8B57]/10 blur-3xl" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-sm p-8 space-y-7">
 
-        <div className="relative">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#2E8B57] flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-white text-xl font-semibold tracking-tight">EduManage</span>
-          </div>
+        {/* Header */}
+        <div className="space-y-1.5">
+          <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
+          <p className="text-sm text-muted-foreground">Sign in to your account to continue</p>
         </div>
 
-        <div className="relative space-y-6">
-          <div className="space-y-3">
-            <h1 className="text-4xl font-bold text-white leading-tight text-balance">
-              College Management
-              <br />
-              <span className="text-[#2E8B57]">Made Simple</span>
-            </h1>
-            <p className="text-zinc-400 text-lg leading-relaxed">
-              Manage students, teachers, attendance, marks, and fees — all in one powerful dashboard.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: "Students", value: "500+" },
-              { label: "Teachers", value: "40+" },
-              { label: "Courses", value: "12" },
-              { label: "Departments", value: "6" },
-            ].map((stat) => (
-              <div key={stat.label} className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <div className="text-2xl font-bold text-white">{stat.value}</div>
-                <div className="text-zinc-500 text-sm">{stat.label}</div>
-              </div>
+        {/* Demo accounts */}
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Quick Login (Demo)</p>
+          <div className="grid grid-cols-2 gap-2">
+            {DEMO_ACCOUNTS.map((acc) => (
+              <button
+                key={acc.role}
+                type="button"
+                onClick={() => fillDemo(acc.email)}
+                className="flex items-center gap-2 p-2.5 rounded-lg border border-border hover:border-[#2E8B57]/50 hover:bg-accent transition-all text-left"
+              >
+                <div className={`w-2 h-2 rounded-full shrink-0 ${acc.color}`} />
+                <span className="text-sm font-medium text-foreground">{acc.role}</span>
+              </button>
             ))}
           </div>
         </div>
 
-        <p className="relative text-zinc-600 text-sm">
-          &copy; {new Date().getFullYear()} EduManage. All rights reserved.
-        </p>
-      </div>
-
-      {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md space-y-8">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-3 lg:hidden">
-            <div className="w-9 h-9 rounded-xl bg-[#2E8B57] flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-foreground text-lg font-semibold">EduManage</span>
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border" />
           </div>
-
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-foreground">Welcome back</h2>
-            <p className="text-muted-foreground">Sign in to your account to continue</p>
+          <div className="relative flex justify-center">
+            <span className="bg-card px-3 text-xs text-muted-foreground">or sign in manually</span>
           </div>
-
-          {/* Demo accounts */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Quick Login (Demo)</p>
-            <div className="grid grid-cols-2 gap-2">
-              {DEMO_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.role}
-                  type="button"
-                  onClick={() => fillDemo(acc.email)}
-                  className="flex items-center gap-2 p-2.5 rounded-lg border border-border hover:border-primary/50 hover:bg-accent transition-all text-left group"
-                >
-                  <div className={`w-2 h-2 rounded-full ${acc.color}`} />
-                  <span className="text-sm font-medium text-foreground">{acc.role}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email address
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@college.edu"
-                autoComplete="email"
-                {...register("email")}
-                className={errors.email ? "border-destructive" : ""}
-              />
-              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-sm font-medium">
-                Password
-              </Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  {...register("password")}
-                  className={`pr-10 ${errors.password ? "border-destructive" : ""}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
-            </div>
-
-            <Button type="submit" className="w-full bg-[#2E8B57] hover:bg-[#236b44] text-white h-10" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign in"
-              )}
-            </Button>
-          </form>
-
-          <p className="text-center text-xs text-muted-foreground">
-            Demo password for all accounts:{" "}
-            <span className="font-mono font-semibold text-foreground">password123</span>
-          </p>
         </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-sm font-medium">
+              Email address
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@college.edu"
+              autoComplete="email"
+              {...register("email")}
+              className={errors.email ? "border-destructive" : ""}
+            />
+            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-sm font-medium">
+              Password
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                {...register("password")}
+                className={`pr-10 ${errors.password ? "border-destructive" : ""}`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full bg-[#2E8B57] hover:bg-[#236b44] text-white h-10"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              "Sign in"
+            )}
+          </Button>
+        </form>
+
+        <p className="text-center text-xs text-muted-foreground">
+          Demo password for all accounts:{" "}
+          <span className="font-mono font-semibold text-foreground">password123</span>
+        </p>
       </div>
     </div>
   )
