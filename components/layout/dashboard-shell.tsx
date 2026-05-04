@@ -79,7 +79,7 @@ export function DashboardShell({ children, pageTitle }: DashboardShellProps) {
         />
 
         <main className="flex-1 overflow-y-auto min-h-0">
-          <div className="p-3 md:p-4 h-full flex flex-col">
+          <div className="p-3 pb-8 md:p-6 md:pb-10">
             {children}
           </div>
         </main>
