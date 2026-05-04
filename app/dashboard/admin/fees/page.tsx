@@ -1,5 +1,4 @@
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { AdminFeesClient } from "@/components/admin/fees/admin-fees-client"
 
 export default async function AdminFeesPage() {
@@ -31,8 +30,7 @@ export default async function AdminFeesPage() {
   }
 
   return (
-    <DashboardShell pageTitle="Fees Management">
-      <AdminFeesClient
+    <AdminFeesClient
         fees={fees.map((f) => ({
           id: f.id,
           amount: f.amount,
@@ -59,6 +57,5 @@ export default async function AdminFeesPage() {
         }))}
         summary={summary}
       />
-    </DashboardShell>
   )
 }

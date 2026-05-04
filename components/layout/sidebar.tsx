@@ -98,8 +98,19 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname()
-  const { data: session } = useSession()
-  const role = session?.user?.role ?? "STUDENT"
+  const { data: session, status } = useSession()
+
+  // While the session is loading, derive the role from the URL path so the
+  // correct nav items show immediately without waiting for the session fetch.
+  // This eliminates the "STUDENT" flicker when navigating to a non-student route.
+  const roleFromUrl = pathname.split("/")[2]?.toUpperCase() ?? ""
+  const validRoles = ["ADMIN", "TEACHER", "STUDENT", "PRINCIPAL"]
+  const fallbackRole = validRoles.includes(roleFromUrl) ? roleFromUrl : "STUDENT"
+
+  const role = status === "loading"
+    ? fallbackRole
+    : (session?.user?.role ?? fallbackRole)
+
   const navItems = navByRole[role] ?? []
 
   const initials = session?.user
@@ -124,23 +135,22 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
   const sidebarContent = (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
       {/* Header */}
-      <div className={cn("flex items-center h-16 border-b border-sidebar-border px-4", collapsed ? "justify-center" : "justify-between")}>
-        <Link href="/" className="flex items-center gap-3 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-[#2E8B57] flex items-center justify-center shrink-0">
-            <GraduationCap className="w-4 h-4 text-white" />
-          </div>
-          {!collapsed && (
-            <span className="font-semibold text-sidebar-foreground truncate text-sm">EduManage</span>
-          )}
-        </Link>
+      <div className={cn("flex items-center h-14 border-b border-sidebar-border px-3", collapsed ? "justify-center" : "justify-between")}>
         {!collapsed && (
-          <button
-            onClick={onToggle}
-            className="w-7 h-7 rounded-md hover:bg-sidebar-accent flex items-center justify-center transition-colors shrink-0"
-          >
-            <ChevronRight className="w-4 h-4 text-sidebar-foreground/60" />
-          </button>
+          <Link href="/" className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-[#2E8B57] flex items-center justify-center shrink-0">
+              <GraduationCap className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="font-semibold text-sidebar-foreground truncate text-sm">EduManage</span>
+          </Link>
         )}
+        <button
+          onClick={onToggle}
+          className="w-7 h-7 rounded-md hover:bg-sidebar-accent flex items-center justify-center transition-colors shrink-0"
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <ChevronRight className={cn("w-4 h-4 text-sidebar-foreground/60 transition-transform duration-300", !collapsed && "rotate-180")} />
+        </button>
       </div>
 
       {/* Role badge */}
@@ -198,16 +208,13 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Side
           <TooltipProvider delayDuration={0}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  onClick={onToggle}
-                  className="w-full flex items-center justify-center p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
-                >
+                <div className="w-full flex items-center justify-center p-2 rounded-lg">
                   <Avatar className="w-8 h-8">
                     <AvatarFallback className="bg-[#2E8B57] text-white text-xs font-bold">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                </button>
+                </div>
               </TooltipTrigger>
               <TooltipContent side="right" className="bg-sidebar-accent text-sidebar-foreground border-sidebar-border">
                 {session?.user?.firstName} {session?.user?.lastName}

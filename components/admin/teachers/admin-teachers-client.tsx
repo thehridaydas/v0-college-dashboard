@@ -23,7 +23,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Spinner } from "@/components/ui/spinner"
 
 interface Teacher {
@@ -139,8 +139,9 @@ export function AdminTeachersClient({ teachers: initialTeachers }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className="flex flex-col gap-4 h-full">
+      {/* Header row */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
         <div>
           <h2 className="text-xl font-semibold">Teachers</h2>
           <p className="text-sm text-muted-foreground">{teachers.length} teaching staff members</p>
@@ -151,14 +152,17 @@ export function AdminTeachersClient({ teachers: initialTeachers }: Props) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <Card><CardContent className="pt-4"><p className="text-2xl font-bold">{teachers.length}</p><p className="text-xs text-muted-foreground mt-1">Total Teachers</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-2xl font-bold">{teachers.filter((t) => t.classTeacherOf).length}</p><p className="text-xs text-muted-foreground mt-1">Class Teachers</p></CardContent></Card>
-        <Card><CardContent className="pt-4"><p className="text-2xl font-bold">{new Set(teachers.map((t) => t.department).filter(Boolean)).size}</p><p className="text-xs text-muted-foreground mt-1">Departments</p></CardContent></Card>
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3 shrink-0">
+        <Card><CardContent className="pt-4 pb-3"><p className="text-2xl font-bold">{teachers.length}</p><p className="text-xs text-muted-foreground mt-1">Total Teachers</p></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3"><p className="text-2xl font-bold">{teachers.filter((t) => t.classTeacherOf).length}</p><p className="text-xs text-muted-foreground mt-1">Class Teachers</p></CardContent></Card>
+        <Card><CardContent className="pt-4 pb-3"><p className="text-2xl font-bold">{new Set(teachers.map((t) => t.department).filter(Boolean)).size}</p><p className="text-xs text-muted-foreground mt-1">Departments</p></CardContent></Card>
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
+      {/* Table card — fills remaining height */}
+      <Card className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        {/* Search aligned with table content */}
+        <div className="px-4 py-3 border-b border-border shrink-0">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -168,86 +172,98 @@ export function AdminTeachersClient({ teachers: initialTeachers }: Props) {
               className="pl-9 h-9"
             />
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
+        </div>
+
+        {/* Scrollable table */}
+        <div className="flex-1 overflow-auto min-h-0">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10">
+              <TableRow>
+                <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground pl-4">Teacher</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Employee ID</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Department</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Class Teacher</TableHead>
+                <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Assignments</TableHead>
+                <TableHead className="w-10 pr-4" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
                 <TableRow>
-                  <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Teacher</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Employee ID</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Department</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Class Teacher</TableHead>
-                  <TableHead className="text-xs uppercase tracking-wide font-semibold text-muted-foreground">Assignments</TableHead>
-                  <TableHead className="w-10" />
+                  <TableCell colSpan={6} className="text-center py-20 text-muted-foreground">
+                    <UserCheck className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                    <p className="text-sm font-medium">
+                      {search ? `No teachers matching "${search}"` : "No teachers yet"}
+                    </p>
+                    {!search && (
+                      <p className="text-xs mt-1 opacity-70">Add a teacher to get started</p>
+                    )}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-16 text-muted-foreground">
-                      <UserCheck className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                      <p className="text-sm">No teachers found</p>
+              ) : (
+                filtered.map((teacher) => (
+                  <TableRow key={teacher.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="pl-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-8 h-8 shrink-0">
+                          <AvatarFallback className="bg-blue-500/10 text-blue-600 text-xs font-bold">
+                            {teacher.firstName[0]}{teacher.lastName[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium">{teacher.firstName} {teacher.lastName}</p>
+                          <p className="text-xs text-muted-foreground">{teacher.email}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell><span className="text-sm font-mono text-muted-foreground">{teacher.employeeId}</span></TableCell>
+                    <TableCell>
+                      {teacher.department ? (
+                        <Badge variant="secondary" className="text-xs font-normal">{teacher.department}</Badge>
+                      ) : <span className="text-xs text-muted-foreground">—</span>}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs text-muted-foreground">{teacher.classTeacherOf ?? "—"}</span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">{teacher.totalAssignments} classes</Badge>
+                    </TableCell>
+                    <TableCell className="pr-4">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openEdit(teacher)} className="gap-2 cursor-pointer">
+                            <Pencil className="w-3.5 h-3.5" />Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => setDeleteId(teacher.id)}
+                            className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  filtered.map((teacher) => (
-                    <TableRow key={teacher.id} className="hover:bg-muted/30 transition-colors">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-8 h-8">
-                            <AvatarFallback className="bg-blue-500/10 text-blue-600 text-xs font-bold">
-                              {teacher.firstName[0]}{teacher.lastName[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-medium">{teacher.firstName} {teacher.lastName}</p>
-                            <p className="text-xs text-muted-foreground">{teacher.email}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell><span className="text-sm font-mono text-muted-foreground">{teacher.employeeId}</span></TableCell>
-                      <TableCell>
-                        {teacher.department ? (
-                          <Badge variant="secondary" className="text-xs font-normal">{teacher.department}</Badge>
-                        ) : <span className="text-xs text-muted-foreground">—</span>}
-                      </TableCell>
-                      <TableCell>
-                        {teacher.classTeacherOf ? (
-                          <span className="text-xs text-muted-foreground">{teacher.classTeacherOf}</span>
-                        ) : <span className="text-xs text-muted-foreground">—</span>}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">{teacher.totalAssignments} classes</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openEdit(teacher)} className="gap-2 cursor-pointer">
-                              <Pencil className="w-3.5 h-3.5" />Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => setDeleteId(teacher.id)}
-                              className="gap-2 cursor-pointer text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Footer count */}
+        {filtered.length > 0 && (
+          <div className="px-4 py-2 border-t border-border shrink-0">
+            <p className="text-xs text-muted-foreground">
+              Showing {filtered.length} of {teachers.length} teacher{teachers.length !== 1 ? "s" : ""}
+            </p>
           </div>
-        </CardContent>
+        )}
       </Card>
 
       {/* Dialog */}

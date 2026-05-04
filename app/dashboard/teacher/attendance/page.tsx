@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { TeacherAttendanceClient } from "@/components/teacher/attendance/teacher-attendance-client"
 
 export default async function TeacherAttendancePage() {
@@ -30,11 +29,7 @@ export default async function TeacherAttendancePage() {
   })
 
   if (!teacher) {
-    return (
-      <DashboardShell pageTitle="Attendance">
-        <p className="text-muted-foreground">Teacher profile not found.</p>
-      </DashboardShell>
-    )
+    return <p className="text-muted-foreground">Teacher profile not found.</p>
   }
 
   // Get unique classes
@@ -66,8 +61,7 @@ export default async function TeacherAttendancePage() {
   })
 
   return (
-    <DashboardShell pageTitle="Attendance">
-      <TeacherAttendanceClient
+    <TeacherAttendanceClient
         classes={classes}
         recentAttendance={recentAttendance.map((a) => ({
           id: a.id,
@@ -78,6 +72,5 @@ export default async function TeacherAttendancePage() {
           rollNumber: a.student.rollNumber,
         }))}
       />
-    </DashboardShell>
   )
 }

@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -36,8 +35,7 @@ export default async function TeacherProfilePage() {
   const initials = `${teacher.user.firstName[0]}${teacher.user.lastName[0]}`
 
   return (
-    <DashboardShell pageTitle="My Profile">
-      <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl space-y-6">
         {/* Profile card */}
         <Card>
           <CardContent className="pt-6">
@@ -127,6 +125,5 @@ export default async function TeacherProfilePage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardShell>
   )
 }

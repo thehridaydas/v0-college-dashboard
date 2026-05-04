@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Inter, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
+import { SessionProvider } from "@/components/session-provider"
 import { Toaster } from "sonner"
 import "./globals.css"
 
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${geistMono.variable} font-sans antialiased`}>
+        <SessionProvider>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="college-theme">
           {children}
           <Toaster
@@ -38,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }}
           />
         </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   )

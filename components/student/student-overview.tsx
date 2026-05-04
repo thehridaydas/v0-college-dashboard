@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { StatsCard } from "@/components/dashboard/stats-card"
-import { Award, Bell, CreditCard, GraduationCap, TrendingUp, UserCheck } from "lucide-react"
+import { DashboardCalendar } from "@/components/dashboard/dashboard-calendar"
+import { Award, Bell, CreditCard, GraduationCap, UserCheck } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer } from "recharts"
 
@@ -31,6 +32,8 @@ const FEE_BADGE: Record<string, string> = {
 }
 
 export function StudentOverview({ student, attendanceStats, recentMarks, feesSummary, recentNotices }: Props) {
+  // Normalise notices to the shape DashboardCalendar expects
+  const calendarNotices = recentNotices.map((n) => ({ id: n.id, title: n.title, createdAt: n.createdAt }))
   const totalFees = feesSummary.reduce((a, b) => a + b.count, 0)
   const pendingFees = feesSummary.find((f) => f.status === "PENDING")?.count ?? 0
   const verifiedFees = feesSummary.find((f) => f.status === "VERIFIED")?.count ?? 0
@@ -43,7 +46,8 @@ export function StudentOverview({ student, attendanceStats, recentMarks, feesSum
   const radialData = [{ name: "Attendance", value: attendanceStats.attendancePct, fill: "#2E8B57" }]
 
   return (
-    <div className="space-y-6">
+    <div className="flex gap-6 items-start">
+    <div className="flex-1 min-w-0 space-y-6">
       {/* Welcome banner */}
       <div className="rounded-xl bg-[#2E8B57] px-6 py-4 text-white flex items-center justify-between">
         <div>
@@ -230,6 +234,10 @@ export function StudentOverview({ student, attendanceStats, recentMarks, feesSum
           </CardContent>
         </Card>
       </div>
+    </div>
+    <div className="hidden xl:block">
+      <DashboardCalendar notices={calendarNotices} />
+    </div>
     </div>
   )
 }

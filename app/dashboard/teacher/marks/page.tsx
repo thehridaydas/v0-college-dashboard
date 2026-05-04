@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { TeacherMarksClient } from "@/components/teacher/marks/teacher-marks-client"
 
 export default async function TeacherMarksPage() {
@@ -32,11 +31,7 @@ export default async function TeacherMarksPage() {
   })
 
   if (!teacher) {
-    return (
-      <DashboardShell pageTitle="Marks">
-        <p className="text-muted-foreground">Teacher profile not found.</p>
-      </DashboardShell>
-    )
+    return <p className="text-muted-foreground">Teacher profile not found.</p>
   }
 
   const existingMarks = await db.mark.findMany({
@@ -49,8 +44,7 @@ export default async function TeacherMarksPage() {
   })
 
   return (
-    <DashboardShell pageTitle="Marks">
-      <TeacherMarksClient
+    <TeacherMarksClient
         teacherId={teacher.id}
         subjects={teacher.assignments.map((a) => ({
           subjectId: a.subjectId!,
@@ -76,6 +70,5 @@ export default async function TeacherMarksPage() {
           createdAt: m.createdAt,
         }))}
       />
-    </DashboardShell>
   )
 }

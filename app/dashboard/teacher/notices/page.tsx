@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { NoticesClient } from "@/components/shared/notices-client"
 
 export const metadata = { title: "Notices | EduManage" }
@@ -23,8 +22,7 @@ export default async function TeacherNoticesPage() {
   })
 
   return (
-    <DashboardShell pageTitle="Notices">
-      <NoticesClient
+    <NoticesClient
         notices={notices.map((n) => ({
           id: n.id,
           title: n.title,
@@ -38,6 +36,5 @@ export default async function TeacherNoticesPage() {
         userId={session.user.id}
         userRole="TEACHER"
       />
-    </DashboardShell>
   )
 }

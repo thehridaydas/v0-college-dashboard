@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { StudentAttendanceClient } from "@/components/student/attendance/student-attendance-client"
 
 export const metadata = { title: "Attendance | EduManage" }
@@ -28,8 +27,7 @@ export default async function StudentAttendancePage() {
   ])
 
   return (
-    <DashboardShell pageTitle="Attendance">
-      <StudentAttendanceClient
+    <StudentAttendanceClient
         classAttendance={classAttendance.map((a) => ({
           id: a.id,
           classLabel: `${a.class.course.code} Y${a.class.year}${a.class.section}`,
@@ -46,6 +44,5 @@ export default async function StudentAttendancePage() {
           remarks: a.remarks,
         }))}
       />
-    </DashboardShell>
   )
 }

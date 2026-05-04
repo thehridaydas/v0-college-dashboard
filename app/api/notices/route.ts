@@ -9,9 +9,6 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const { searchParams } = new URL(req.url)
-    const userId = searchParams.get("userId") ?? session.user.id
-
     const notices = await db.notice.findMany({
       where: {
         OR: [

@@ -46,10 +46,18 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const data = createMarkSchema.parse(body)
 
-    // Get teacher id for session user
-    let teacherId = body.teacherId
-    if (!teacherId && session.user.role === "TEACHER") {
+    // Derive teacherId securely based on role.
+    // TEACHER: always use the session user's own teacher record — body.teacherId is ignored.
+    // ADMIN: require a valid teacherId in the body and verify it exists in the DB.
+    let teacherId: string
+    if (session.user.role === "TEACHER") {
       const teacher = await db.teacher.findUnique({ where: { userId: session.user.id } })
+      if (!teacher) return NextResponse.json({ error: "Teacher profile not found" }, { status: 404 })
+      teacherId = teacher.id
+    } else {
+      // ADMIN path
+      if (!body.teacherId) return NextResponse.json({ error: "teacherId is required" }, { status: 400 })
+      const teacher = await db.teacher.findUnique({ where: { id: body.teacherId } })
       if (!teacher) return NextResponse.json({ error: "Teacher not found" }, { status: 404 })
       teacherId = teacher.id
     }

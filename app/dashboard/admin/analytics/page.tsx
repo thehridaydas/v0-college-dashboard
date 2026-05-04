@@ -1,5 +1,4 @@
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { AdminAnalyticsClient } from "@/components/admin/analytics/admin-analytics-client"
 
 export default async function AdminAnalyticsPage() {
@@ -65,8 +64,7 @@ export default async function AdminAnalyticsPage() {
   ])
 
   return (
-    <DashboardShell pageTitle="Analytics">
-      <AdminAnalyticsClient
+    <AdminAnalyticsClient
         enrollmentByYear={enrollmentByYear.map((e) => ({
           year: e.admissionYear.toString(),
           students: e._count.admissionYear,
@@ -87,6 +85,5 @@ export default async function AdminAnalyticsPage() {
           count: m._count.examType,
         }))}
       />
-    </DashboardShell>
   )
 }

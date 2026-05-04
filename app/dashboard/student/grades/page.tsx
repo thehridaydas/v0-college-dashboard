@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { StudentGradesClient } from "@/components/student/grades/student-grades-client"
 
 export const metadata = { title: "Grades | EduManage" }
@@ -24,8 +23,7 @@ export default async function StudentGradesPage() {
   })
 
   return (
-    <DashboardShell pageTitle="Grades">
-      <StudentGradesClient
+    <StudentGradesClient
         marks={marks.map((m) => ({
           id: m.id,
           subjectName: m.subject.name,
@@ -41,6 +39,5 @@ export default async function StudentGradesPage() {
         }))}
         studentName={`${session.user.firstName} ${session.user.lastName}`}
       />
-    </DashboardShell>
   )
 }

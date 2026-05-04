@@ -1,5 +1,4 @@
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { AdminSubjectsClient } from "@/components/admin/subjects/admin-subjects-client"
 
 export default async function AdminSubjectsPage() {
@@ -26,8 +25,7 @@ export default async function AdminSubjectsPage() {
   ])
 
   return (
-    <DashboardShell pageTitle="Subjects">
-      <AdminSubjectsClient
+    <AdminSubjectsClient
         subjects={subjects.map((s) => ({
           id: s.id,
           name: s.name,
@@ -49,6 +47,5 @@ export default async function AdminSubjectsPage() {
           name: `${t.user.firstName} ${t.user.lastName}`,
         }))}
       />
-    </DashboardShell>
   )
 }

@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { AdminAnalyticsClient } from "@/components/admin/analytics/admin-analytics-client"
 
 export const metadata = { title: "Analytics | EduManage" }
@@ -52,8 +51,7 @@ export default async function PrincipalAnalyticsPage() {
   }
 
   return (
-    <DashboardShell pageTitle="Analytics">
-      <AdminAnalyticsClient
+    <AdminAnalyticsClient
         enrollmentByYear={enrollmentByYear.map((e) => ({
           year: e.admissionYear.toString(),
           students: e._count.admissionYear,
@@ -74,6 +72,5 @@ export default async function PrincipalAnalyticsPage() {
           count: m._count.examType,
         }))}
       />
-    </DashboardShell>
   )
 }

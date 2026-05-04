@@ -1,6 +1,6 @@
 "use client"
 
-import { Menu, Bell, Sun, Moon, Search } from "lucide-react"
+import { Menu, Bell, Sun, Moon } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { GlobalSearch } from "./global-search"
 
 interface TopbarProps {
   pageTitle: string
@@ -41,19 +42,12 @@ export function Topbar({ pageTitle, onMenuClick, notifications = [] }: TopbarPro
         <span className="sr-only">Open menu</span>
       </Button>
 
-      {/* Page title */}
-      <div className="flex-1 min-w-0">
-        <h1 className="text-sm font-semibold text-foreground truncate">{pageTitle}</h1>
+      {/* Global search */}
+      <div className="hidden md:flex flex-1 min-w-0">
+        <GlobalSearch />
       </div>
 
       <div className="flex items-center gap-1.5">
-        {/* Search shortcut */}
-        <button className="hidden md:flex items-center gap-2 h-8 px-3 rounded-lg border border-border bg-muted/50 text-xs text-muted-foreground hover:bg-muted transition-colors">
-          <Search className="w-3.5 h-3.5" />
-          <span>Search</span>
-          <kbd className="ml-2 text-[10px] font-mono bg-background border border-border rounded px-1 py-0.5">⌘K</kbd>
-        </button>
-
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { StudentOverview } from "@/components/student/student-overview"
 
 export const metadata = { title: "Student Dashboard | EduManage" }
@@ -15,7 +14,7 @@ export default async function StudentDashboardPage() {
     where: { userId: session.user.id },
     include: {
       enrollments: {
-        include: { class: { include: { course: true, subjects: true } } },
+        include: { class: { include: { course: { select: { name: true } } } } },
         take: 1,
       },
     },
@@ -24,10 +23,10 @@ export default async function StudentDashboardPage() {
 
   const enrollment = student.enrollments[0]
   const classId = enrollment?.classId
-
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
+  // Run all remaining queries in parallel - 1 round trip instead of 4
   const [attendanceStats, recentMarks, feesSummary, recentNotices] = await Promise.all([
     db.classAttendance.groupBy({
       by: ["status"],
@@ -36,7 +35,7 @@ export default async function StudentDashboardPage() {
     }),
     db.mark.findMany({
       where: { studentId: student.id },
-      include: { subject: true },
+      include: { subject: { select: { name: true } } },
       orderBy: { createdAt: "desc" },
       take: 5,
     }),
@@ -66,8 +65,7 @@ export default async function StudentDashboardPage() {
   const attendancePct = totalAttendance > 0 ? Math.round(((presentCount + lateCount) / totalAttendance) * 100) : 0
 
   return (
-    <DashboardShell pageTitle="Dashboard">
-      <StudentOverview
+    <StudentOverview
         student={{
           name: `${session.user.firstName} ${session.user.lastName}`,
           rollNumber: student.rollNumber,
@@ -102,6 +100,5 @@ export default async function StudentDashboardPage() {
           createdAt: n.createdAt.toISOString(),
         }))}
       />
-    </DashboardShell>
   )
 }

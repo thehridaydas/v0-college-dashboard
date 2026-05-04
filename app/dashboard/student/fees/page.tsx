@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import { DashboardShell } from "@/components/layout/dashboard-shell"
 import { StudentFeesClient } from "@/components/student/fees/student-fees-client"
 
 export const metadata = { title: "My Fees | EduManage" }
@@ -23,8 +22,7 @@ export default async function StudentFeesPage() {
   })
 
   return (
-    <DashboardShell pageTitle="My Fees">
-      <StudentFeesClient
+    <StudentFeesClient
         fees={fees.map((f) => ({
           id: f.id,
           amount: f.amount,
@@ -42,6 +40,5 @@ export default async function StudentFeesPage() {
         }))}
         studentId={student.id}
       />
-    </DashboardShell>
   )
 }

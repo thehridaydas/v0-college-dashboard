@@ -5,6 +5,7 @@ import { StatsCard } from "@/components/dashboard/stats-card"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { DashboardCalendar } from "@/components/dashboard/dashboard-calendar"
 import { formatDistanceToNow } from "date-fns"
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -25,6 +26,7 @@ interface Props {
   monthlyData: Array<{ month: string; students: number }>
   feesByStatus: Array<{ status: string; _count: { status: number }; _sum: { amount: number | null } }>
   attendanceStats: Array<{ status: string; _count: { status: number } }>
+  notices: Array<{ id: string; title: string; createdAt: string }>
 }
 
 const FEE_COLORS: Record<string, string> = {
@@ -46,7 +48,7 @@ const ROLE_COLOR: Record<string, string> = {
   TEACHER: "bg-blue-500/10 text-blue-600",
 }
 
-export function AdminOverview({ stats, recentActivity, monthlyData, feesByStatus, attendanceStats }: Props) {
+export function AdminOverview({ stats, recentActivity, monthlyData, feesByStatus, attendanceStats, notices }: Props) {
   const pieData = feesByStatus.map((f) => ({
     name: f.status,
     value: f._count.status,
@@ -59,7 +61,8 @@ export function AdminOverview({ stats, recentActivity, monthlyData, feesByStatus
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="flex gap-6 items-start">
+    <div className="flex-1 min-w-0 space-y-6">
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
@@ -249,6 +252,11 @@ export function AdminOverview({ stats, recentActivity, monthlyData, feesByStatus
           </CardContent>
         </Card>
       </div>
+    </div>
+    {/* Right-side calendar panel */}
+    <div className="hidden xl:block">
+      <DashboardCalendar notices={notices} />
+    </div>
     </div>
   )
 }

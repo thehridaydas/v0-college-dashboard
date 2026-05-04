@@ -5,8 +5,15 @@ import { db } from "@/lib/db"
 import { Role } from "@prisma/client"
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
+    // Cache JWT for 24 hours - avoids re-validating on every request
+    maxAge: 24 * 60 * 60,
+    updateAge: 60 * 60, // Only update session token every hour
+  },
+  jwt: {
+    maxAge: 24 * 60 * 60,
   },
   pages: {
     signIn: "/login",
@@ -67,5 +74,4 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
 }

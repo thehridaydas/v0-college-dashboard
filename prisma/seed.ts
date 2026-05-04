@@ -3,383 +3,491 @@ import bcrypt from "bcryptjs"
 
 const prisma = new PrismaClient()
 
+function rand(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+function workdaysBefore(days: number): Date[] {
+  const dates: Date[] = []
+  const today = new Date()
+  let d = 0
+  while (dates.length < days) {
+    const date = new Date(today)
+    date.setDate(today.getDate() - d)
+    d++
+    if (date.getDay() === 0 || date.getDay() === 6) continue
+    dates.push(date)
+  }
+  return dates
+}
+
 async function main() {
-  console.log("Seeding database...")
+  try {
+    console.log("Seeding database...")
 
-  // Clean existing data
-  await prisma.noticeRecipient.deleteMany()
-  await prisma.notice.deleteMany()
-  await prisma.fee.deleteMany()
-  await prisma.mark.deleteMany()
-  await prisma.subjectAttendance.deleteMany()
-  await prisma.classAttendance.deleteMany()
-  await prisma.enrollment.deleteMany()
-  await prisma.teacherAssignment.deleteMany()
-  await prisma.subject.deleteMany()
-  await prisma.class.deleteMany()
-  await prisma.course.deleteMany()
-  await prisma.student.deleteMany()
-  await prisma.teacher.deleteMany()
-  await prisma.admin.deleteMany()
-  await prisma.principal.deleteMany()
-  await prisma.session.deleteMany()
-  await prisma.account.deleteMany()
-  await prisma.user.deleteMany()
+    // --- Clean ---
+    console.log("Clearing existing data...")
+    await prisma.noticeRecipient.deleteMany()
+    await prisma.notice.deleteMany()
+    await prisma.fee.deleteMany()
+    await prisma.mark.deleteMany()
+    await prisma.subjectAttendance.deleteMany()
+    await prisma.classAttendance.deleteMany()
+    await prisma.enrollment.deleteMany()
+    await prisma.teacherAssignment.deleteMany()
+    await prisma.subject.deleteMany()
+    await prisma.class.deleteMany()
+    await prisma.course.deleteMany()
+    await prisma.student.deleteMany()
+    await prisma.teacher.deleteMany()
+    await prisma.admin.deleteMany()
+    await prisma.principal.deleteMany()
+    await prisma.session.deleteMany()
+    await prisma.account.deleteMany()
+    await prisma.user.deleteMany()
+    console.log("✓ Cleared all tables")
 
-  const hashedPassword = await bcrypt.hash("password123", 12)
+    const hashedPassword = await bcrypt.hash("password123", 12)
 
-  // Create Admin
-  const adminUser = await prisma.user.create({
-    data: {
-      email: "admin@college.edu",
-      password: hashedPassword,
-      firstName: "Rajesh",
-      lastName: "Kumar",
-      role: Role.ADMIN,
-      admin: { create: {} },
-    },
-  })
-
-  // Create Principal
-  const principalUser = await prisma.user.create({
-    data: {
-      email: "principal@college.edu",
-      password: hashedPassword,
-      firstName: "Dr. Priya",
-      lastName: "Sharma",
-      role: Role.PRINCIPAL,
-      principal: { create: {} },
-    },
-  })
-
-  // Create Teachers
-  const teacher1User = await prisma.user.create({
-    data: {
-      email: "teacher1@college.edu",
-      password: hashedPassword,
-      firstName: "Amit",
-      lastName: "Verma",
-      role: Role.TEACHER,
-      teacher: {
-        create: {
-          employeeId: "TCH001",
-          department: "Mathematics",
-          phone: "9876543210",
-          qualification: "M.Sc Mathematics",
-          joiningDate: new Date("2020-06-15"),
-        },
-      },
-    },
-  })
-
-  const teacher2User = await prisma.user.create({
-    data: {
-      email: "teacher2@college.edu",
-      password: hashedPassword,
-      firstName: "Sunita",
-      lastName: "Patel",
-      role: Role.TEACHER,
-      teacher: {
-        create: {
-          employeeId: "TCH002",
-          department: "Science",
-          phone: "9876543211",
-          qualification: "M.Sc Physics",
-          joiningDate: new Date("2019-07-01"),
-        },
-      },
-    },
-  })
-
-  const teacher3User = await prisma.user.create({
-    data: {
-      email: "teacher3@college.edu",
-      password: hashedPassword,
-      firstName: "Mohan",
-      lastName: "Das",
-      role: Role.TEACHER,
-      teacher: {
-        create: {
-          employeeId: "TCH003",
-          department: "English",
-          phone: "9876543212",
-          qualification: "M.A English",
-          joiningDate: new Date("2021-08-01"),
-        },
-      },
-    },
-  })
-
-  // Create Students
-  const studentUsers = []
-  const studentData = [
-    { first: "Aarav", last: "Singh", email: "student1@college.edu", roll: "2024001" },
-    { first: "Priya", last: "Gupta", email: "student2@college.edu", roll: "2024002" },
-    { first: "Rahul", last: "Mehta", email: "student3@college.edu", roll: "2024003" },
-    { first: "Ananya", last: "Joshi", email: "student4@college.edu", roll: "2024004" },
-    { first: "Vikram", last: "Rao", email: "student5@college.edu", roll: "2024005" },
-    { first: "Kavya", last: "Nair", email: "student6@college.edu", roll: "2024006" },
-    { first: "Arjun", last: "Reddy", email: "student7@college.edu", roll: "2024007" },
-    { first: "Sneha", last: "Pillai", email: "student8@college.edu", roll: "2024008" },
-    { first: "Karan", last: "Malhotra", email: "student9@college.edu", roll: "2024009" },
-    { first: "Pooja", last: "Tiwari", email: "student10@college.edu", roll: "2024010" },
-  ]
-
-  for (const s of studentData) {
-    const user = await prisma.user.create({
+    // --- Admin ---
+    const adminUser = await prisma.user.create({
       data: {
-        email: s.email,
+        email: "admin@college.edu",
         password: hashedPassword,
-        firstName: s.first,
-        lastName: s.last,
-        role: Role.STUDENT,
-        student: {
-          create: {
-            rollNumber: s.roll,
-            phone: `98765${s.roll.slice(-5)}`,
-            admissionYear: 2024,
-            parentName: `Parent of ${s.first}`,
-            parentPhone: `87654${s.roll.slice(-5)}`,
+        firstName: "Rajesh",
+        lastName: "Kumar",
+        role: Role.ADMIN,
+        admin: { create: {} },
+      },
+    })
+
+    // --- Principal ---
+    const principalUser = await prisma.user.create({
+      data: {
+        email: "principal@college.edu",
+        password: hashedPassword,
+        firstName: "Dr. Priya",
+        lastName: "Sharma",
+        role: Role.PRINCIPAL,
+        principal: { create: {} },
+      },
+    })
+    console.log("✓ Admin + Principal created")
+
+    // --- Teachers (10) ---
+    console.log("Creating 10 teachers...")
+    const teacherData = [
+      { email: "teacher1@college.edu",  first: "Amit",      last: "Verma",     emp: "TCH001", dept: "Mathematics", qual: "M.Sc Mathematics",  joined: "2020-06-15", phone: "9876543210" },
+      { email: "teacher2@college.edu",  first: "Sunita",    last: "Patel",     emp: "TCH002", dept: "Science",     qual: "M.Sc Physics",     joined: "2019-07-01", phone: "9876543211" },
+      { email: "teacher3@college.edu",  first: "Mohan",     last: "Das",       emp: "TCH003", dept: "English",     qual: "M.A English",      joined: "2021-08-01", phone: "9876543212" },
+      { email: "teacher4@college.edu",  first: "Kavitha",   last: "Nair",      emp: "TCH004", dept: "Hindi",       qual: "M.A Hindi",        joined: "2018-05-10", phone: "9876543213" },
+      { email: "teacher5@college.edu",  first: "Rajan",     last: "Iyer",      emp: "TCH005", dept: "Social Science", qual: "M.A History",  joined: "2022-01-15", phone: "9876543214" },
+      { email: "teacher6@college.edu",  first: "Deepa",     last: "Menon",     emp: "TCH006", dept: "Education",   qual: "M.Ed",             joined: "2017-06-01", phone: "9876543215" },
+      { email: "teacher7@college.edu",  first: "Suresh",    last: "Babu",      emp: "TCH007", dept: "Commerce",    qual: "M.Com",            joined: "2021-03-20", phone: "9876543216" },
+      { email: "teacher8@college.edu",  first: "Anitha",    last: "Krishnan",  emp: "TCH008", dept: "Psychology",  qual: "M.Sc Psychology",  joined: "2023-07-01", phone: "9876543217" },
+      { email: "teacher9@college.edu",  first: "Prakash",   last: "Sharma",    emp: "TCH009", dept: "Mathematics", qual: "Ph.D Mathematics", joined: "2016-04-01", phone: "9876543218" },
+      { email: "teacher10@college.edu", first: "Meenakshi", last: "Sundaram",  emp: "TCH010", dept: "Science",     qual: "M.Sc Chemistry",   joined: "2020-09-15", phone: "9876543219" },
+    ]
+
+    const teacherUsers = []
+    for (const t of teacherData) {
+      const u = await prisma.user.create({
+        data: {
+          email: t.email,
+          password: hashedPassword,
+          firstName: t.first,
+          lastName: t.last,
+          role: Role.TEACHER,
+          teacher: {
+            create: {
+              employeeId: t.emp,
+              department: t.dept,
+              phone: t.phone,
+              qualification: t.qual,
+              joiningDate: new Date(t.joined),
+            },
           },
         },
-      },
-    })
-    studentUsers.push(user)
-  }
+      })
+      teacherUsers.push(u)
+    }
+    console.log("✓ 10 teachers created")
 
-  // Create Courses
-  const bed = await prisma.course.create({
-    data: {
-      name: "Bachelor of Education",
-      code: "B.Ed",
-      duration: 2,
-      description: "Two-year professional degree for teaching",
-    },
-  })
+    const teachers = await prisma.teacher.findMany({ include: { user: true } })
+    const tById = (idx: number) => teachers[idx]
 
-  const bscBed = await prisma.course.create({
-    data: {
-      name: "B.Sc B.Ed",
-      code: "B.Sc-B.Ed",
-      duration: 4,
-      description: "Integrated science and education degree",
-    },
-  })
+    // --- Courses (5) ---
+    console.log("Creating courses...")
+    const [bed, bscBed, baBed, deled, mEd] = await Promise.all([
+      prisma.course.create({ data: { name: "Bachelor of Education", code: "B.Ed", duration: 2, description: "Two-year professional degree for teaching" } }),
+      prisma.course.create({ data: { name: "B.Sc B.Ed", code: "B.Sc-B.Ed", duration: 4, description: "Integrated science and education degree" } }),
+      prisma.course.create({ data: { name: "B.A B.Ed", code: "B.A-B.Ed", duration: 4, description: "Integrated arts and education degree" } }),
+      prisma.course.create({ data: { name: "Diploma in Elementary Education", code: "D.El.Ed", duration: 2, description: "Diploma programme for elementary school teachers" } }),
+      prisma.course.create({ data: { name: "Master of Education", code: "M.Ed", duration: 2, description: "Postgraduate programme in education" } }),
+    ])
+    console.log("✓ 5 courses created")
 
-  const baBed = await prisma.course.create({
-    data: {
-      name: "B.A B.Ed",
-      code: "B.A-B.Ed",
-      duration: 4,
-      description: "Integrated arts and education degree",
-    },
-  })
+    // --- Classes (12) ---
+    console.log("Creating classes...")
+    const [
+      bedY1A, bedY1B, bedY2A, bedY2B,
+      bscY1A, bscY2A, bscY3A,
+      baY1A, baY2A,
+      deledY1A, deledY2A,
+      medY1A,
+    ] = await Promise.all([
+      prisma.class.create({ data: { courseId: bed.id,    year: 1, section: "A" } }),
+      prisma.class.create({ data: { courseId: bed.id,    year: 1, section: "B" } }),
+      prisma.class.create({ data: { courseId: bed.id,    year: 2, section: "A" } }),
+      prisma.class.create({ data: { courseId: bed.id,    year: 2, section: "B" } }),
+      prisma.class.create({ data: { courseId: bscBed.id, year: 1, section: "A" } }),
+      prisma.class.create({ data: { courseId: bscBed.id, year: 2, section: "A" } }),
+      prisma.class.create({ data: { courseId: bscBed.id, year: 3, section: "A" } }),
+      prisma.class.create({ data: { courseId: baBed.id,  year: 1, section: "A" } }),
+      prisma.class.create({ data: { courseId: baBed.id,  year: 2, section: "A" } }),
+      prisma.class.create({ data: { courseId: deled.id,  year: 1, section: "A" } }),
+      prisma.class.create({ data: { courseId: deled.id,  year: 2, section: "A" } }),
+      prisma.class.create({ data: { courseId: mEd.id,    year: 1, section: "A" } }),
+    ])
+    console.log("✓ 12 classes created")
 
-  // Create Classes
-  const class1 = await prisma.class.create({
-    data: { courseId: bed.id, year: 1, section: "A" },
-  })
-  const class2 = await prisma.class.create({
-    data: { courseId: bed.id, year: 2, section: "A" },
-  })
-  const class3 = await prisma.class.create({
-    data: { courseId: bscBed.id, year: 1, section: "A" },
-  })
-  const class4 = await prisma.class.create({
-    data: { courseId: baBed.id, year: 1, section: "A" },
-  })
+    // --- Subjects ---
+    console.log("Creating subjects...")
+    const subjectMap: Record<string, { id: string; classId: string }[]> = {}
 
-  // Create Subjects
-  const subjects1 = await Promise.all([
-    prisma.subject.create({ data: { classId: class1.id, name: "Education Psychology", code: "EP101", credits: 4 } }),
-    prisma.subject.create({ data: { classId: class1.id, name: "Pedagogy of Mathematics", code: "PM101", credits: 4 } }),
-    prisma.subject.create({ data: { classId: class1.id, name: "English Communication", code: "EC101", credits: 3 } }),
-    prisma.subject.create({ data: { classId: class1.id, name: "ICT in Education", code: "ICT101", credits: 3 } }),
-  ])
+    const subjectDefs: [{ id: string }, string, string, number][] = [
+      // BEd Y1
+      [bedY1A, "Education Psychology",    "EP101",   4],
+      [bedY1A, "Pedagogy of Mathematics", "PM101",   4],
+      [bedY1A, "English Communication",   "EC101",   3],
+      [bedY1A, "ICT in Education",        "ICT101",  3],
+      [bedY1A, "Childhood & Growing Up",  "CG101",   4],
+      [bedY1B, "Education Psychology",    "EP101B",  4],
+      [bedY1B, "Pedagogy of Science",     "PS101B",  4],
+      [bedY1B, "English Communication",   "EC101B",  3],
+      [bedY1B, "ICT in Education",        "ICT101B", 3],
+      // BEd Y2
+      [bedY2A, "Advanced Pedagogy",       "AP201",   4],
+      [bedY2A, "Research Methods",        "RM201",   4],
+      [bedY2A, "Curriculum Design",       "CD201",   3],
+      [bedY2A, "School Management",       "SM201",   3],
+      [bedY2B, "Advanced Pedagogy",       "AP201B",  4],
+      [bedY2B, "Research Methods",        "RM201B",  4],
+      [bedY2B, "Assessment in Education", "AE201B",  3],
+      // BScBEd
+      [bscY1A, "Physics",                 "PHY101",  5],
+      [bscY1A, "Chemistry",               "CHEM101", 5],
+      [bscY1A, "Mathematics",             "MATH101", 4],
+      [bscY1A, "Education Foundations",   "EF101",   3],
+      [bscY2A, "Advanced Physics",        "PHY201",  5],
+      [bscY2A, "Organic Chemistry",       "CHEM201", 5],
+      [bscY2A, "Pedagogy of Science",     "PS201",   4],
+      [bscY3A, "Research in Science Edu", "RSE301",  4],
+      [bscY3A, "Internship",              "INT301",  6],
+      // BABEd
+      [baY1A,  "History of Education",    "HE101",   4],
+      [baY1A,  "Hindi Literature",        "HL101",   4],
+      [baY1A,  "English Literature",      "EL101",   4],
+      [baY1A,  "Sociology of Education",  "SE101",   3],
+      [baY2A,  "Political Science",       "POL201",  4],
+      [baY2A,  "Advanced Hindi",          "HL201",   4],
+      [baY2A,  "Pedagogy of Social Sci",  "PSS201",  4],
+      // DElEd
+      [deledY1A, "Child Development",     "CD101",   4],
+      [deledY1A, "Language & Literacy",   "LL101",   4],
+      [deledY1A, "Maths for Primary",     "MP101",   4],
+      [deledY2A, "EVS & Science",         "EVS201",  4],
+      [deledY2A, "Arts in Education",     "AE201",   3],
+      // MEd
+      [medY1A,  "Educational Philosophy", "EPH101",  4],
+      [medY1A,  "Advanced Research",      "AR101",   4],
+      [medY1A,  "Educational Statistics", "EST101",  4],
+      [medY1A,  "Policy in Education",    "PE101",   3],
+    ]
 
-  const subjects2 = await Promise.all([
-    prisma.subject.create({ data: { classId: class2.id, name: "Advanced Pedagogy", code: "AP201", credits: 4 } }),
-    prisma.subject.create({ data: { classId: class2.id, name: "Research Methods", code: "RM201", credits: 4 } }),
-    prisma.subject.create({ data: { classId: class2.id, name: "Curriculum Design", code: "CD201", credits: 3 } }),
-  ])
+    const allSubjects: { id: string; classId: string }[] = []
+    for (const [cls, name, code, credits] of subjectDefs) {
+      const s = await prisma.subject.create({ data: { classId: cls.id, name, code, credits } })
+      allSubjects.push({ id: s.id, classId: cls.id })
+      if (!subjectMap[cls.id]) subjectMap[cls.id] = []
+      subjectMap[cls.id].push({ id: s.id, classId: cls.id })
+    }
+    console.log(`✓ ${allSubjects.length} subjects created`)
 
-  const subjects3 = await Promise.all([
-    prisma.subject.create({ data: { classId: class3.id, name: "Physics", code: "PHY101", credits: 5 } }),
-    prisma.subject.create({ data: { classId: class3.id, name: "Chemistry", code: "CHEM101", credits: 5 } }),
-    prisma.subject.create({ data: { classId: class3.id, name: "Mathematics", code: "MATH101", credits: 4 } }),
-  ])
-
-  // Get teacher records
-  const teacher1 = await prisma.teacher.findUnique({ where: { userId: teacher1User.id } })
-  const teacher2 = await prisma.teacher.findUnique({ where: { userId: teacher2User.id } })
-  const teacher3 = await prisma.teacher.findUnique({ where: { userId: teacher3User.id } })
-
-  // Teacher Assignments
-  await prisma.teacherAssignment.createMany({
-    data: [
-      // Teacher1 (Math) is class teacher + subject teacher for class1
-      { teacherId: teacher1!.id, classId: class1.id, subjectId: subjects1[1].id, isClassTeacher: false },
-      { teacherId: teacher1!.id, classId: class1.id, subjectId: null, isClassTeacher: true },
-      // Teacher2 (Science) teaches class2 and class3
-      { teacherId: teacher2!.id, classId: class2.id, subjectId: subjects2[0].id, isClassTeacher: false },
-      { teacherId: teacher2!.id, classId: class3.id, subjectId: subjects3[0].id, isClassTeacher: false },
-      { teacherId: teacher2!.id, classId: class3.id, subjectId: null, isClassTeacher: true },
-      // Teacher3 (English) teaches class1 english
-      { teacherId: teacher3!.id, classId: class1.id, subjectId: subjects1[2].id, isClassTeacher: false },
-      { teacherId: teacher3!.id, classId: class2.id, subjectId: null, isClassTeacher: true },
-    ],
-  })
-
-  // Enroll students in classes
-  const students = await prisma.student.findMany()
-
-  for (let i = 0; i < students.length; i++) {
-    const classId = i < 5 ? class1.id : i < 8 ? class2.id : class3.id
-    await prisma.enrollment.create({
-      data: { studentId: students[i].id, classId },
-    })
-  }
-
-  // Create Attendance Records (last 30 days)
-  const today = new Date()
-  for (let d = 0; d < 20; d++) {
-    const date = new Date(today)
-    date.setDate(date.getDate() - d)
-    if (date.getDay() === 0 || date.getDay() === 6) continue // skip weekends
-
-    const enrollments = await prisma.enrollment.findMany()
-    for (const enrollment of enrollments) {
-      const rand = Math.random()
-      const status = rand < 0.85 ? AttendanceStatus.PRESENT : rand < 0.95 ? AttendanceStatus.LATE : AttendanceStatus.ABSENT
-      await prisma.classAttendance.upsert({
-        where: { studentId_classId_date: { studentId: enrollment.studentId, classId: enrollment.classId, date } },
-        create: { studentId: enrollment.studentId, classId: enrollment.classId, date, status },
-        update: { status },
+    // --- Teacher Assignments ---
+    console.log("Creating teacher assignments...")
+    const classes = [bedY1A, bedY1B, bedY2A, bedY2B, bscY1A, bscY2A, bscY3A, baY1A, baY2A, deledY1A, deledY2A, medY1A]
+    // Assign class teacher first
+    for (let i = 0; i < classes.length; i++) {
+      const t = tById(i % teachers.length)
+      await prisma.teacherAssignment.create({
+        data: { teacherId: t.id, classId: classes[i].id, subjectId: null, isClassTeacher: true },
       })
     }
-  }
-
-  // Create Marks
-  const allSubjects = [...subjects1, ...subjects2, ...subjects3]
-  for (const student of students) {
-    const enrollment = await prisma.enrollment.findFirst({ where: { studentId: student.id } })
-    if (!enrollment) continue
-    const classSubjects = allSubjects.filter((s) => s.classId === enrollment.classId)
-    for (const subject of classSubjects) {
-      const teacherAssignment = await prisma.teacherAssignment.findFirst({ where: { classId: enrollment.classId, subjectId: subject.id } })
-      const teacherId = teacherAssignment?.teacherId ?? teacher1!.id
-      const internalMark = Math.floor(Math.random() * 40) + 55
-      const externalMark = Math.floor(Math.random() * 40) + 50
-      await prisma.mark.createMany({
-        data: [
-          { studentId: student.id, subjectId: subject.id, teacherId, marks: internalMark, maxMarks: 100, examType: ExamType.INTERNAL },
-          { studentId: student.id, subjectId: subject.id, teacherId, marks: externalMark, maxMarks: 100, examType: ExamType.EXTERNAL },
-        ],
-        skipDuplicates: true,
+    // Assign subject teachers
+    for (const subj of allSubjects) {
+      const t = pick(teachers)
+      await prisma.teacherAssignment.upsert({
+        where: { teacherId_classId_subjectId: { teacherId: t.id, classId: subj.classId, subjectId: subj.id } },
+        create: { teacherId: t.id, classId: subj.classId, subjectId: subj.id, isClassTeacher: false },
+        update: {},
       })
     }
-  }
+    console.log("✓ Teacher assignments created")
 
-  // Create Fees
-  const feeStatuses = [FeeStatus.PENDING, FeeStatus.SUBMITTED, FeeStatus.VERIFIED, FeeStatus.VERIFIED, FeeStatus.PENDING]
-  for (let i = 0; i < students.length; i++) {
-    const dueDate = new Date()
-    dueDate.setDate(dueDate.getDate() + 15)
-    const status = feeStatuses[i % feeStatuses.length]
-    await prisma.fee.create({
-      data: {
-        studentId: students[i].id,
-        amount: 45000 + Math.floor(Math.random() * 5000),
-        dueDate,
-        status,
-        description: "Semester 1 Tuition Fee",
-        utr: status === FeeStatus.SUBMITTED || status === FeeStatus.VERIFIED ? `UTR${100000 + i}` : null,
-        verifiedByTeacherId: status === FeeStatus.VERIFIED ? teacher1!.id : null,
-        verifiedAt: status === FeeStatus.VERIFIED ? new Date() : null,
-        submittedAt: status !== FeeStatus.PENDING ? new Date() : null,
-      },
-    })
-    // Extra fee for some
-    if (i % 3 === 0) {
-      await prisma.fee.create({
+    // --- Students (200) ---
+    console.log("Creating 200 students...")
+    const firstNames = [
+      "Aarav","Priya","Rahul","Ananya","Vikram","Kavya","Arjun","Sneha","Karan","Pooja",
+      "Rohan","Nisha","Siddharth","Divya","Aditya","Shreya","Manish","Ankita","Deepak","Simran",
+      "Kunal","Riya","Nikhil","Tanvi","Harsh","Swati","Gaurav","Preeti","Varun","Neha",
+      "Akash","Pallavi","Rohit","Shweta","Ajay","Meghna","Vijay","Sunaina","Piyush","Rekha",
+      "Sandeep","Rashmi","Saurabh","Nandita","Vivek","Jyoti","Tarun","Lavanya","Madhav","Bhavna",
+      "Yash","Shruti","Kartik","Ridhi","Dhruv","Payal","Mohit","Aarti","Sumit","Komal",
+      "Sachin","Nidhi","Ravi","Shalini","Amit","Chitra","Vinay","Archana","Suresh","Leela",
+      "Balu","Geetha","Rajesh","Usha","Shankar","Saroja","Mani","Ambika","Velu","Kamala",
+      "Farhan","Sana","Imran","Zara","Salman","Nadia","Asif","Razia","Tariq","Hina",
+      "Jatin","Richa","Pranav","Swara","Nirav","Foram","Chirag","Hetal","Bhavin","Varsha",
+      "Lokesh","Sowmya","Karthik","Bhavani","Madhan","Meera","Suresh","Bharathi","Vignesh","Padma",
+      "Hitesh","Vandana","Vishal","Sarita","Sunil","Lata","Ramesh","Seema","Dinesh","Sunita",
+      "Arvind","Geeta","Kishore","Mamta","Naresh","Savita","Prakash","Shobha","Virendra","Sarla",
+      "Omkar","Ashwini","Tejas","Sanika","Ninad","Gauri","Harshal","Mugdha","Akshay","Sayali",
+      "Bishwajit","Pallabi","Subhajit","Ankita","Debdas","Supriya","Arnab","Tanushree","Sourav","Priyanka",
+      "Hardeep","Gurpreet","Manpreet","Navneet","Paramjit","Sukhwinder","Jaswinder","Kulwinder","Satinder","Tejinder",
+      "Venkatesh","Jayalakshmi","Raghavan","Alamelu","Thirumala","Saraswathi","Balaji","Revathi","Selvam","Malathi",
+      "Rizwan","Shabana","Mukhtar","Farzana","Riyaz","Samreen","Aslam","Gulnaz","Wasim","Rubina",
+      "Tejas","Ketki","Prasad","Sumedha","Aniket","Mrudula","Shubham","Apurva","Ronak","Dipali",
+      "Abhinav","Priyam","Shivam","Tanya","Gaurav","Simmi","Deepak","Ritu","Manav","Srishti",
+    ]
+    const lastNames = [
+      "Singh","Gupta","Mehta","Joshi","Rao","Nair","Reddy","Pillai","Malhotra","Tiwari",
+      "Sharma","Verma","Patel","Desai","Iyer","Menon","Bose","Chatterjee","Das","Ghosh",
+      "Kapoor","Khanna","Bhatia","Arora","Sethi","Chopra","Walia","Sood","Anand","Bajaj",
+      "Kumar","Mishra","Tripathi","Pandey","Srivastava","Yadav","Chaudhary","Dubey","Shukla","Tomar",
+      "Thakur","Rajput","Rathore","Chauhan","Bhadauria","Shekhawat","Ranawat","Jadeja","Solanki","Bhatt",
+      "Naidu","Reddy","Varma","Raju","Krishnan","Subramaniam","Pillai","Murthy","Swamy","Prasad",
+      "Khan","Ansari","Siddiqui","Sheikh","Malik","Qureshi","Mirza","Hussain","Akhtar","Beg",
+      "Patil","Kulkarni","Deshpande","Joshi","Shinde","Jadhav","Kale","More","Bhosale","Kadam",
+      "Choudhary","Sinha","Prasad","Jha","Roy","Mukherjee","Banerjee","Chakraborty","Sen","Dey",
+      "Nambiar","Kurup","Warrier","Karunakaran","Madhavan","Suresh","Babu","Nair","Menon","Pillai",
+    ]
+
+    const TOTAL_STUDENTS = 200
+    const studentUsers: string[] = []
+    for (let i = 0; i < TOTAL_STUDENTS; i++) {
+      const first = firstNames[i % firstNames.length]
+      const last = lastNames[i % lastNames.length]
+      // Give duplicate-name students a distinguishing middle initial so emails stay unique
+      const suffix = i >= firstNames.length ? `${Math.floor(i / firstNames.length)}` : ""
+      const rollYear = i < 80 ? 2024 : i < 140 ? 2023 : 2022
+      const roll = `${rollYear}${String(i + 1).padStart(3, "0")}`
+      const u = await prisma.user.create({
         data: {
-          studentId: students[i].id,
-          amount: 2500,
-          dueDate,
-          status: FeeStatus.PENDING,
-          description: "Back Paper Fee",
-          isExtraFee: true,
+          email: `student${i + 1}@college.edu`,
+          password: hashedPassword,
+          firstName: first + suffix,
+          lastName: last,
+          role: Role.STUDENT,
+          student: {
+            create: {
+              rollNumber: roll,
+              phone: `9${rand(600000000, 999999999)}`,
+              admissionYear: rollYear,
+              parentName: `${pick(["Mr.", "Mrs."])} ${last}`,
+              parentPhone: `8${rand(600000000, 999999999)}`,
+              address: `${rand(1, 999)}, ${pick(["MG Road","Gandhi Nagar","Nehru Street","Patel Colony","Shastri Nagar","Lal Bagh","Civil Lines","Model Town"])}, ${pick(["Delhi","Mumbai","Bangalore","Chennai","Kolkata","Hyderabad","Pune","Jaipur","Lucknow","Bhopal","Patna","Kochi"])}`,
+              dateOfBirth: new Date(1999 + rand(0, 5), rand(0, 11), rand(1, 28)),
+            },
+          },
         },
       })
+      studentUsers.push(u.id)
     }
-  }
+    console.log(`✓ ${TOTAL_STUDENTS} students created`)
 
-  // Create Notices
-  const notice1 = await prisma.notice.create({
-    data: {
-      title: "Mid-Term Examination Schedule",
-      content: "Mid-term examinations will commence from 15th November 2024. Students are advised to prepare accordingly. The timetable will be posted on the notice board.",
-      targetType: NoticeTarget.ALL,
-      createdById: adminUser.id,
-    },
-  })
+    // --- Enroll students ---
+    console.log("Enrolling students...")
+    const students = await prisma.student.findMany()
+    const classSlots = [
+      ...Array(25).fill(bedY1A.id),
+      ...Array(22).fill(bedY1B.id),
+      ...Array(20).fill(bedY2A.id),
+      ...Array(18).fill(bedY2B.id),
+      ...Array(20).fill(bscY1A.id),
+      ...Array(18).fill(bscY2A.id),
+      ...Array(15).fill(bscY3A.id),
+      ...Array(18).fill(baY1A.id),
+      ...Array(16).fill(baY2A.id),
+      ...Array(15).fill(deledY1A.id),
+      ...Array(13).fill(deledY2A.id),
+      ...Array(10).fill(medY1A.id),
+    ] // total = 200
+    for (let i = 0; i < students.length && i < classSlots.length; i++) {
+      await prisma.enrollment.create({ data: { studentId: students[i].id, classId: classSlots[i] } })
+    }
+    console.log("✓ Students enrolled")
 
-  const notice2 = await prisma.notice.create({
-    data: {
-      title: "Fee Submission Reminder",
-      content: "Last date for fee submission is 30th October 2024. Students who have not submitted fees will not be allowed to appear in examinations.",
-      targetType: NoticeTarget.ROLE,
-      targetId: "STUDENT",
-      createdById: adminUser.id,
-    },
-  })
+    // --- Attendance (60 working days) ---
+    console.log("Creating attendance records (60 days)...")
+    const enrollments = await prisma.enrollment.findMany()
+    const dates = workdaysBefore(60)
+    let attCount = 0
+    for (const date of dates) {
+      for (const en of enrollments) {
+        const r = Math.random()
+        const status = r < 0.78 ? AttendanceStatus.PRESENT : r < 0.92 ? AttendanceStatus.LATE : AttendanceStatus.ABSENT
+        await prisma.classAttendance.upsert({
+          where: { studentId_classId_date: { studentId: en.studentId, classId: en.classId, date } },
+          create: { studentId: en.studentId, classId: en.classId, date, status },
+          update: {},
+        })
+        attCount++
+      }
+    }
+    console.log(`✓ ${attCount} attendance records created`)
 
-  const notice3 = await prisma.notice.create({
-    data: {
-      title: "Staff Meeting",
-      content: "All teaching staff is requested to attend the mandatory staff meeting on 20th October 2024 at 10:00 AM in the Conference Hall.",
-      targetType: NoticeTarget.ROLE,
-      targetId: "TEACHER",
-      createdById: principalUser.id,
-    },
-  })
+    // --- Marks ---
+    console.log("Creating marks...")
+    let marksCount = 0
+    const teacherList = await prisma.teacher.findMany()
+    for (const student of students) {
+      const enrollment = await prisma.enrollment.findFirst({ where: { studentId: student.id } })
+      if (!enrollment) continue
+      const classSubjects = subjectMap[enrollment.classId] ?? []
+      for (const subj of classSubjects) {
+        const t = pick(teacherList)
+        const examTypes: { type: ExamType; min: number; max: number }[] = [
+          { type: ExamType.INTERNAL,   min: 50, max: 95 },
+          { type: ExamType.EXTERNAL,   min: 40, max: 90 },
+          { type: ExamType.ASSIGNMENT, min: 60, max: 100 },
+        ]
+        for (const ex of examTypes) {
+          await prisma.mark.upsert({
+            where: { studentId_subjectId_examType: { studentId: student.id, subjectId: subj.id, examType: ex.type } },
+            create: { studentId: student.id, subjectId: subj.id, teacherId: t.id, marks: rand(ex.min, ex.max), maxMarks: 100, examType: ex.type },
+            update: {},
+          })
+          marksCount++
+        }
+      }
+    }
+    console.log(`✓ ${marksCount} marks created`)
 
-  // Distribute notices to users
-  const allUsers = await prisma.user.findMany()
-  for (const user of allUsers) {
-    await prisma.noticeRecipient.createMany({
-      data: [
-        { noticeId: notice1.id, userId: user.id, isRead: Math.random() > 0.5 },
-      ],
-      skipDuplicates: true,
-    })
-    if (user.role === Role.STUDENT) {
-      await prisma.noticeRecipient.createMany({
-        data: [{ noticeId: notice2.id, userId: user.id, isRead: Math.random() > 0.6 }],
-        skipDuplicates: true,
+    // --- Fees ---
+    console.log("Creating fees...")
+    const feeDescriptions = ["Semester 1 Tuition Fee", "Semester 2 Tuition Fee", "Examination Fee", "Library Fee", "Sports Fee", "Lab Fee"]
+    const extraDescs = ["Back Paper Fee", "Re-admission Fee", "Late Fee Penalty", "Identity Card Fee"]
+    let feeCount = 0
+    for (let i = 0; i < students.length; i++) {
+      const numFees = rand(1, 3)
+      for (let f = 0; f < numFees; f++) {
+        const dueOffset = rand(-30, 60)
+        const dueDate = new Date()
+        dueDate.setDate(dueDate.getDate() + dueOffset)
+        const status: FeeStatus = pick([FeeStatus.PENDING, FeeStatus.PENDING, FeeStatus.SUBMITTED, FeeStatus.VERIFIED, FeeStatus.VERIFIED, FeeStatus.REJECTED])
+        const t = pick(teacherList)
+        await prisma.fee.create({
+          data: {
+            studentId: students[i].id,
+            amount: pick([15000, 20000, 25000, 45000, 50000, 55000, 60000]) + rand(0, 999),
+            dueDate,
+            status,
+            description: pick(feeDescriptions),
+            utr: status === FeeStatus.SUBMITTED || status === FeeStatus.VERIFIED ? `UTR${rand(100000, 999999)}` : null,
+            verifiedByTeacherId: status === FeeStatus.VERIFIED ? t.id : null,
+            verifiedAt: status === FeeStatus.VERIFIED ? new Date(Date.now() - rand(0, 7) * 86400000) : null,
+            submittedAt: status !== FeeStatus.PENDING ? new Date(Date.now() - rand(1, 14) * 86400000) : null,
+          },
+        })
+        feeCount++
+      }
+      if (i % 4 === 0) {
+        const dueDate = new Date()
+        dueDate.setDate(dueDate.getDate() + rand(5, 30))
+        await prisma.fee.create({
+          data: {
+            studentId: students[i].id,
+            amount: rand(1000, 5000),
+            dueDate,
+            status: FeeStatus.PENDING,
+            description: pick(extraDescs),
+            isExtraFee: true,
+          },
+        })
+        feeCount++
+      }
+    }
+    console.log(`✓ ${feeCount} fees created`)
+
+    // --- Notices (10) ---
+    console.log("Creating notices...")
+    const noticeData = [
+      { title: "Mid-Term Examination Schedule",         content: "Mid-term examinations will commence from 15th November 2024. Students are advised to prepare accordingly. The time table will be shared by respective class teachers.",         target: NoticeTarget.ALL,  targetId: null,       by: adminUser.id },
+      { title: "Fee Submission Reminder",               content: "Last date for fee submission is 30th October 2024. Students who have not submitted fees will not be allowed to appear in examinations. Contact the accounts office for any queries.",  target: NoticeTarget.ROLE, targetId: "STUDENT",  by: adminUser.id },
+      { title: "Staff Meeting",                         content: "All teaching staff is requested to attend the mandatory staff meeting on 20th October 2024 at 10:00 AM in the Conference Hall. Attendance is compulsory.",                             target: NoticeTarget.ROLE, targetId: "TEACHER",  by: principalUser.id },
+      { title: "Annual Sports Day",                     content: "The annual sports day will be held on 5th December 2024. All students are encouraged to participate. Registration forms are available with the sports coordinator.",                    target: NoticeTarget.ALL,  targetId: null,       by: adminUser.id },
+      { title: "Library Timings Update",                content: "The library will now remain open from 8:00 AM to 7:00 PM on all working days including Saturday. Students are encouraged to utilize the extended hours for exam preparation.",          target: NoticeTarget.ALL,  targetId: null,       by: principalUser.id },
+      { title: "Practical Examination Notice",          content: "Practical examinations for B.Sc B.Ed students will begin from 10th November 2024. Students must bring their lab journals and identity cards.",                                         target: NoticeTarget.ROLE, targetId: "STUDENT",  by: adminUser.id },
+      { title: "Guest Lecture on NEP 2020",             content: "A guest lecture on the National Education Policy 2020 will be conducted on 25th October 2024 at 11:00 AM in the Main Auditorium. All faculty and students are invited.",              target: NoticeTarget.ALL,  targetId: null,       by: principalUser.id },
+      { title: "Attendance Shortage Warning",           content: "Students with attendance below 75% will receive a written warning. Repeated shortage may lead to detention. Please check your attendance record with your class teacher.",             target: NoticeTarget.ROLE, targetId: "STUDENT",  by: adminUser.id },
+      { title: "Staff Professional Development",        content: "A two-day professional development workshop will be held on 28-29 October 2024. All teachers must register with the HR department before 22nd October.",                              target: NoticeTarget.ROLE, targetId: "TEACHER",  by: principalUser.id },
+      { title: "College Foundation Day Celebration",    content: "The college will celebrate its 25th Foundation Day on 1st December 2024. Cultural programmes, alumni meet, and prize distribution will be held. All are welcome.",                     target: NoticeTarget.ALL,  targetId: null,       by: adminUser.id },
+    ]
+
+    const createdNotices = []
+    for (const n of noticeData) {
+      const notice = await prisma.notice.create({
+        data: {
+          title: n.title,
+          content: n.content,
+          targetType: n.target,
+          targetId: n.targetId,
+          createdById: n.by,
+        },
       })
+      createdNotices.push(notice)
     }
-    if (user.role === Role.TEACHER) {
-      await prisma.noticeRecipient.createMany({
-        data: [{ noticeId: notice3.id, userId: user.id, isRead: Math.random() > 0.4 }],
-        skipDuplicates: true,
-      })
-    }
-  }
+    console.log("✓ 10 notices created")
 
-  console.log("Seeding complete!")
-  console.log("\nLogin credentials:")
-  console.log("Admin:     admin@college.edu     / password123")
-  console.log("Principal: principal@college.edu  / password123")
-  console.log("Teacher:   teacher1@college.edu   / password123")
-  console.log("Student:   student1@college.edu   / password123")
+    // --- Distribute notices ---
+    console.log("Distributing notices...")
+    const allUsers = await prisma.user.findMany()
+    for (const notice of createdNotices) {
+      for (const user of allUsers) {
+        const relevant =
+          notice.targetType === NoticeTarget.ALL ||
+          (notice.targetType === NoticeTarget.ROLE && notice.targetId === user.role)
+        if (!relevant) continue
+        await prisma.noticeRecipient.upsert({
+          where: { noticeId_userId: { noticeId: notice.id, userId: user.id } },
+          create: { noticeId: notice.id, userId: user.id, isRead: Math.random() > 0.5 },
+          update: {},
+        })
+      }
+    }
+    console.log("✓ Notices distributed")
+
+    console.log("\n✅ Seeding complete!")
+    console.log(`   Users: 1 admin, 1 principal, 10 teachers, ${TOTAL_STUDENTS} students`)
+    console.log(`   Courses: 5 | Classes: 12 | Subjects: ${allSubjects.length}`)
+    console.log(`   Attendance: ${attCount} records | Marks: ${marksCount} | Fees: ${feeCount}`)
+    console.log(`   Notices: ${createdNotices.length}`)
+    console.log("\nLogin credentials:")
+    console.log("  Admin:     admin@college.edu      / password123")
+    console.log("  Principal: principal@college.edu   / password123")
+    console.log("  Teacher:   teacher1@college.edu    / password123")
+    console.log("  Student:   student1@college.edu    / password123")
+  } catch (e) {
+    console.error("Error during seeding:", e)
+    process.exit(1)
+  } finally {
+    await prisma.$disconnect()
+  }
 }
 
 main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+
